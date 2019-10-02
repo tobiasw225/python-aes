@@ -66,26 +66,27 @@ def encrypt_file(key: list,
                 )))
 
 
-def decrypt_file(filename: str,
-                 utf: bool = False):
+def decrypt_file(key: list,
+                 filename: str,
+                 enc: str = 'utf-8'):
     """
-
+    :param key:
     :param filename:
-    :param utf:
+    :param enc:
     :return:
     """
     blocks = get_blocks(filename)
     expanded_key = expand_key(key)
     dec_blocks= [decrypt(block,expanded_key) for block in blocks]
-    if not utf:
+    if enc == 'ascii':
         return "".join(decode_blocks_to_string(dec_blocks))
-    else:
-        return "".join(utf_to_text(dec_blocks, enc='utf-8'))
+    if enc == 'utf-8':
+        return "".join(utf_to_text(dec_blocks, enc=enc))
     
 
 if __name__ == '__main__':
 
-    filename = "/home/tobias/mygits/python-aes/res/info.log"
-    key = get_key("/home/tobias/mygits/python-aes/keys/gKey")
-    encrypt_file(key=key, filename=filename, enc='utf-8', output_file='encrypted')
-    print(decrypt_file("encrypted", utf=True))
+    filename = "../res/test.txt"
+    key = get_key("../keys/gKey")
+    encrypt_file(key=key, filename=filename, output_file='../res/encrypted')
+    print(decrypt_file(key=key, filename="../res/encrypted"))

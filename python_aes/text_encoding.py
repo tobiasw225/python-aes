@@ -76,7 +76,7 @@ def decode_blocks_to_string(blocks: list):
             try:
                 yield chr(block[i])
             except:
-                yield ""
+                yield " "
 
 
 def write_decoded_text(blocks: list, filename: str):
@@ -107,16 +107,19 @@ def encode_block(letters: str, enc: str = 'utf-8') -> list:
     :param enc:
     :return:
     """
-    encoded_letters = []
+    enc_letters = []
+    # fehler liegt weiter oben ! ZiriklyEntryComp instead of Ziri
     end = 16
     if enc == "utf-16":
         end = 4
+
     for j in range(end):
         enc_l = bytes(letters[j], encoding=enc)
-        for c in enc_l:
-            encoded_letters.append(c)
+        enc_letters.extend(enc_l)
+    enc_letters.extend([0] * (16 - len(enc_letters)))  # fill up rest with zeros.
+
     #assert len(encoded_letters) <= 16
-    return encoded_letters[:16]  # das kann gar nicht sein. @todo
+    return enc_letters[:16]  # das kann gar nicht sein. @todo
 
 
 def decode_block(block: list, enc: str = 'utf-8'):
@@ -127,22 +130,24 @@ def decode_block(block: list, enc: str = 'utf-8'):
     :param enc:
     :return:
     """
-    ga = []  # global array
     step = 2
     if enc == "utf-16":
         step = 4
 
-    for i in range(0, 16, step):
-        if i == 0:
-            t = bytes(block[:step])
-        else:
-            t = bytes(block[i:i + step])
+    b_block = [bytes(block[i:i + step]) for i in range(0, 16, step)]
+    signs = []
+    for sign in b_block:
+        # For some reason, I get extra \x00 signs,
+        # when I call bytes() in this script. This
+        # does not happen when called on the console.
+        sign = sign.replace(b'\x00', b'')
         try:
-            t = t.decode(enc)
-            ga.append(t)
+            sign = sign.decode(enc)
         except UnicodeDecodeError:
-            print("-")
-    return ga
+            sign = ""
+        signs.append(sign)
+
+    return "".join(signs)
 
 
 def text_to_utf(filename: str, enc: str = 'utf-8')-> list:
@@ -152,31 +157,23 @@ def text_to_utf(filename: str, enc: str = 'utf-8')-> list:
     :param enc:
     :return:
     """
-    block_field = []
+    blocks = []
     end = 16
     if enc == "utf-16":
         end = 4
 
-    with open(filename, "r", encoding=enc) as fobj:
+    with open(filename, "r", encoding=enc) as fin:
         while True:
-            letters = fobj.read(end)
+            letters = fin.read(end)
             if len(letters) < end:
                 break
             encoded_block = encode_block(letters, enc)
 
-            if len(encoded_block) == 12 and enc == "utf-16":
-                for j in range(11, 16):
-                    encoded_block.append(0)
-
-            if len(encoded_block) < 16 and enc == "utf-8":
-                for j in range(len(encoded_block), 16):
-                    encoded_block.append(0)
-
             assert len(encoded_block) == 16
 
-            block_field.append(encoded_block)
+            blocks.append(encoded_block)
 
-        return block_field
+        return blocks
 
 
 def utf_to_text(blocks: list, enc: str):
@@ -187,31 +184,4 @@ def utf_to_text(blocks: list, enc: str):
     :return:
     """
     for block in blocks:
-        db = decode_block(block, enc)
-        for c in db:
-            yield c
-
-
-
-def get_blocks_of_file(filename):
-    """
-
-    :param filename:
-    :return:
-    """
-    with open(filename, "rb") as f:
-        nbf = []
-        eof = False
-        byte = f.read(16)  # first 16. signs
-        nbf.append(byte)
-        while byte and not eof:
-            byte = f.read(16)
-            lenthofbyte = len(byte)
-            if lenthofbyte < 16:
-                for i in range(lenthofbyte, 16):
-                    byte += b'0'  # verbesserungswuerdig
-                eof = True  # when you have to fill up, it means you've reached eof
-            nbf.append(byte)
-    return nbf
-
-
+        yield decode_block(block, enc)

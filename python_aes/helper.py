@@ -14,7 +14,7 @@
 
 import random
 import re
-
+import numpy as np
 
 def print_block(block: list):
     """
@@ -22,11 +22,8 @@ def print_block(block: list):
     :param block:
     :return:
     """
-    i = 0
-    for u in range(4):
-        for j in range(i, i+4):
-            print(block[j], end='\t')
-        i += 4
+    for i in range(0, 16, 4):
+        print("\t".join(block[i:i+4]))
         print("\n")
 
 
@@ -35,11 +32,8 @@ def rand_key() -> str:
 
     :return:
     """
-    rk = [''] * 32
-    for i in range(32):
-        number = random.randint(0, 0xFF)
-        number = format(number, '02x')
-        rk[i] = number
+    rk = np.random.randint(0, 255, 32)
+    rk = [format(i,  '02x') for i in rk]
     return "".join(rk)
 
 
@@ -70,6 +64,10 @@ def get_key(file: str) -> list:
     """
     with open(file, "r") as f:
         return process_block(f.read())
+
+
+get_block = get_key
+
 
 def chunks(blocks, n: int = 16):
     """

@@ -11,18 +11,8 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
-
+import numpy as np
 from python_aes.helper import process_block
-
-
-def get_block(file: str) -> list:
-    """
-
-    :param file:
-    :return:
-    """
-    with open(file, "r") as f:
-        return process_block(f.read())
 
 
 def get_blocks(file: str) -> list:

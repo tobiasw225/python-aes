@@ -1,6 +1,7 @@
 import unittest
+import numpy as np
 
-from readBlockFile import get_block
+from python_aes.helper import get_block
 from python_aes.helper import get_key
 
 from python_aes.AES256 import encrypt
@@ -18,7 +19,7 @@ class AESTest(unittest.TestCase):
         test_block = get_block("/home/tobias/mygits/python-aes/res/testBlock")
         enc_block = encrypt(test_block, key)
         dec_block = decrypt(enc_block, key)
-        self.assertEqual(dec_block, test_block)
+        self.assertEqual(np.allclose(dec_block, test_block), True)
 
 
 if __name__ == '__main__':

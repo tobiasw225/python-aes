@@ -91,8 +91,8 @@ class AESInterface():
 
 
 if __name__ == '__main__':
-    my_aes  = AESInterface()
+    my_aes = AESInterface()
 
-    enc = my_aes.encrypt_string("sehr geil")
+    enc = my_aes.encrypt_string("sehr gut.")
     print(enc)
     print(my_aes.decrypt_string(enc))
