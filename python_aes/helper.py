@@ -16,6 +16,7 @@ import random
 import re
 import numpy as np
 
+
 def print_block(block: list):
     """
 
@@ -46,24 +47,24 @@ def fmap(x):
     return int(x, 16)
 
 
-def process_block(block: str) -> list:
+def process_block(block: str) -> np.ndarray:
     """
 
     :param block:
     :return:
     """
     block = re.findall('..', block)  # splits the string in 2pairs
-    return list(map(fmap, block))
+    return np.array(list(map(fmap, block)), dtype=int)
 
 
-def get_key(file: str) -> list:
+def get_key(file: str) -> np.ndarray:
     """
 
     :param file:
     :return:
     """
     with open(file, "r") as f:
-        return process_block(f.read())
+        return np.array(process_block(f.read()))
 
 
 get_block = get_key

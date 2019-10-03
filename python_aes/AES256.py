@@ -23,7 +23,9 @@ from python_aes.AddRoundKey import add_roundkey
 from python_aes.res.sboxInv import *
 from python_aes.res.sbox import *
 
-def encrypt(block: list, expanded_key: np.ndarray) -> list:
+
+def encrypt(block: np.ndarray,
+            expanded_key: np.ndarray) -> np.ndarray:
     """
 
     :param block:
@@ -50,7 +52,8 @@ def encrypt(block: list, expanded_key: np.ndarray) -> list:
     return block
 
 
-def decrypt(block: list, expanded_key: np.ndarray) -> list:
+def decrypt(block: np.ndarray,
+            expanded_key: np.ndarray) -> np.ndarray:
     """
 
     :param block:

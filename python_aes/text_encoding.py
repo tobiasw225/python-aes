@@ -21,39 +21,38 @@
 
 """
 
+import numpy as np
 
-def string_to_blocks(text: str) -> list:
+
+def string_to_blocks(text: str) -> np.ndarray:
     """
 
     :param text:
     :return:
     """
-    blocks = [ord(c) for c in text]
-    return reshape_blocks(blocks=blocks)
+    return reshape_blocks(blocks=[ord(c) for c in text])
 
 
-def reshape_blocks(blocks: list) -> list:
+def reshape_blocks(blocks: list) -> np.ndarray:
     """
         reshape blocks from simple list
-        to list of lists.
+        to list of lists and add a default-value
+        (whitespace)
 
     :param blocks:
     :return:
     """
-    new_blocks = [blocks[i:i+16] for i in range(0, len(blocks), 16)]
-    for block in new_blocks:
-        if len(block) < 16:
-            # if eof is reached the remaining places
-            # are filled with pseudo random numbers
-            for j in range(16-len(block)):
-                #block.append(random.randint(0, 0xFF))
-                block.append(32)  # 32 ~ whitespace
-        assert len(block) == 16
-
+    # add missing spaces.
+    future_len = len(blocks) + 16-(len(blocks) % 16)
+    n_rows = future_len // 16
+    # 32 ~ whitespace
+    new_blocks = np.full(future_len, dtype=int, fill_value=32)
+    new_blocks[:len(blocks)] = blocks
+    new_blocks = new_blocks.reshape((n_rows, 16))
     return new_blocks
 
 
-def text_file_to_blocks(filename: str) -> list:
+def text_file_to_blocks(filename: str) -> np.ndarray:
     """
 
     :param filename:
@@ -61,8 +60,7 @@ def text_file_to_blocks(filename: str) -> list:
     """
     with open(filename, "r") as fin:
         text = fin.read()
-    blocks = [ord(c) for c in text]
-    return reshape_blocks(blocks=blocks)
+    return reshape_blocks(blocks=[ord(c) for c in text])
 
 
 def decode_blocks_to_string(blocks: list):
@@ -108,7 +106,6 @@ def encode_block(letters: str, enc: str = 'utf-8') -> list:
     :return:
     """
     enc_letters = []
-    # fehler liegt weiter oben ! ZiriklyEntryComp instead of Ziri
     end = 16
     if enc == "utf-16":
         end = 4
@@ -116,7 +113,8 @@ def encode_block(letters: str, enc: str = 'utf-8') -> list:
     for j in range(end):
         enc_l = bytes(letters[j], encoding=enc)
         enc_letters.extend(enc_l)
-    enc_letters.extend([0] * (16 - len(enc_letters)))  # fill up rest with zeros.
+    # fill up rest with zeros.
+    enc_letters.extend([0] * (16 - len(enc_letters)))
 
     #assert len(encoded_letters) <= 16
     return enc_letters[:16]  # das kann gar nicht sein. @todo

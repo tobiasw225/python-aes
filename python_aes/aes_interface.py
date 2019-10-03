@@ -60,7 +60,7 @@ class AESInterface():
         blocks = string_to_blocks(mask + text + mask)
         enc_block = []
         for block in blocks:
-            block = [block[i] ^ last_block[i] for i in range(16)]
+            block = np.bitwise_xor(block, last_block)
             last_block = encrypt(block, self.expanded_key)
             enc_block.append(last_block)
         return "".join(["".join([str(format(sign, '02x')) for sign in block]) for block in enc_block])
@@ -83,7 +83,7 @@ class AESInterface():
         for block in chunks(blocks):
             # i want to have nice chunks of 16 numbers
             dec_block = decrypt(block, self.expanded_key)
-            last_block = [lb ^ db for lb, db in zip(last_block, dec_block)]
+            last_block = np.bitwise_xor(last_block, dec_block)
             dec_blocks.append(last_block)
             last_block = block
         # text is masked => extract only text

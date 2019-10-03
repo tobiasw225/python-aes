@@ -35,31 +35,33 @@ def key_schedule_core(word: np.ndarray, it_no: int) -> list:
     return word
 
 
-def expand_key(key: list) -> np.ndarray:
+def expand_key(key: np.ndarray) -> np.ndarray:
     """
 
     :param key:
     :return:
     """
     c = 32
-    i = 1
+    # initialize extended key with key-elements.
+    _key = np.zeros(240, dtype=int)
+    _key[:32] = key
+    key = _key
 
     while c < 240:
-        # Copy the temporary variable over
-        word = np.array(key[c-4: c])
-        # Every eight sets, do a complex calculation
+        # Copy the temporary variable.
+        word = key[c-4: c]
         if c % 32 == 0:
-            word = key_schedule_core(word, i)
-            i += 1
-            # For 256-bit keys, we add an extra sbox to the calculation
+            # Every eight sets, do a complex calculation.
+            # (c % 32)-1 ~ i+1
+            word = key_schedule_core(word, (c % 32)-1)
         if c % 32 == 16:
+            # For 256-bit keys, we add an extra sbox to the calculation.
             word = sbox[word]
 
-        for a in range(4):
-            key.append([])  # array needs to be extended
-            key[c] = key[c - 32] ^ word[a]  # appending
-            c += 1
-    return np.array(key)
+        key[c: c + 4] = key[c-32: c+4-32] ^ word
+        c += 4
+
+    return key
 
 
 def create_round_key(expanded_key: np.ndarray, n: int) -> np.ndarray:

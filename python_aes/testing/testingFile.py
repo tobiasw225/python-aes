@@ -19,10 +19,11 @@ import binascii
 import os
 
 from python_aes.helper import get_key
+from python_aes.helper import process_block
 from python_aes.keyManager import *
 from python_aes.AES256 import encrypt
 from python_aes.AES256 import decrypt
-
+from python_aes.text_encoding import decode_block
 
 mask = "<enctext>"
 
@@ -32,11 +33,7 @@ class AESInterface():
         self.expanded_key = None
         self.key = None
         self.set_rand_key(key_name="/home/tobias/mygits/python-aes/keys/gKey")
-
-        self.init_vector = [0] * 16
-        for i in range(16):
-            number = random.randint(0, 0xFF)
-            self.init_vector[i] = number
+        self.init_vector = np.random.randint(0, 255, 16)
 
     def set_rand_key(self, key_name="../keys/gKey"):
         """
@@ -46,167 +43,88 @@ class AESInterface():
         self.key = get_key(key_name)
         self.expanded_key = expand_key(self.key)
 
-    """
-    encryption methods
-    """
-    def encrypt_blocks(self, filename=""):
+    def encrypt_file(self, filename: str) -> str:
         """
+            encrypts file block by block
+            and returns the encrypted byte-string.
+
         :param filename:
-        :param last_block:
         :return:
         """
+        assert os.path.isfile(filename)
         last_block = self.init_vector
-
         for block in blocks_of_file(filename):
-            for i in range(16):
-                block[i] ^= last_block[i]
+            block = np.bitwise_xor(block, last_block)
             last_block = encrypt(block, self.expanded_key)
-            yield last_block
+            yield "".join(str(format(sign, '02x'))
+                          for sign in last_block)
 
-    def encrypt_file(self, filename=""):
+
+    def decrypt_file(self, filename: str):
         """
-
-        :param filename:
-        :return:
-        """
-        if not filename:
-            raise ValueError('no filename')
-        fout_name = '../../res/enc'
-        print('write to %s'% fout_name)
-        block_ctr = 0
-        buffer = ""
-
-        for enc_block in self.encrypt_blocks(filename):
-            buffer += "".join(str(format(sign, '02x')) for sign in enc_block)
-            if block_ctr % 2:
-                with open(file=fout_name, mode='at') as fout:
-                    fout.write(buffer)
-                    fout.write('\n')
-                    buffer = ""
-            block_ctr += 1
-
-    """
-    decryption methods
-    """
-    def decrypt_blocks(self, filename=""):
-        """
+             not working yet.
 
         :param filename:
         :return:
         """
         last_block = self.init_vector
 
-        for block in self.get_encrypted_blocks(filename):
-            db = decrypt(block, self.expanded_key)
-            for i in range(16):
-                last_block[i] ^= db[i]
-
-            last_block = block
-            yield last_block
-
-    def decrypt_file(self, filename=""):
-        """
-
-        :param filename:
-        :return:
-        """
-        print("@todo implement. doesn't work yet")
-        if not filename:
-            raise ValueError('no filename')
-        out_file = "../../res/dec"
-
-        if os.path.isfile(out_file):
-            os.remove(out_file)
-
-        block_ctr = 0
-        buffer = ""
-        for block in self.decrypt_blocks(filename):
-            pass
-            # for i in range(16):
-            #     try:
-            #         buffer += chr(block[i])
-            #     except:
-            #         pass
-            # if block_ctr % 2:
-            #     with open(file=out_file, mode='at') as fout:
-            #         fout.write(buffer)
-            #         buffer = ""
-            # block_ctr += 1
-
-    def get_encrypted_blocks(self, filename=""):
-        """
-        :param filename:
-        :param last_block
-        :return:
-        """
         with open(file=filename, mode='r') as fin:
             while fin:
                 line = fin.readline()
-                line_length = len(line)
-                half_line = round(line_length/2)
+                block = process_block(line)
+                if len(block) < 16:
+                    _block = np.full(16, fill_value=0, dtype=int)
+                    _block[:len(block)] = block
+                    block = _block
 
-                if line_length:
-                    first_block = line[:half_line]
-                    second_block = line[half_line:]
-
-                    yield split_2_pairs(first_block)
-                    yield split_2_pairs(second_block)
-
-
-def split_2_pairs(enc_text_block=""):
-    """
-
-    :param enc_text_block:
-    :return:
-    """
-    u = re.findall('..', enc_text_block)  # splits the string in 2pairs
-    u = map(fmap, u)
-    blocks = list(u)
-    if len(blocks) % 16 == 0:
-        while len(blocks) % 16 != 0:
-            blocks.append(0)
-    return blocks
+                db = decrypt(block, self.expanded_key)
+                last_block = np.bitwise_xor(last_block, db)
+                yield decode_block(last_block)
 
 
-def blocks_of_file(filename="", block_size=16):
+def blocks_of_file(filename: str, block_size: int = 8):
     """
 
     :param block_size:
     :param filename:
     :return:
     """
-    with open(file=filename, mode="rb") as f:
-        eof = False
-        ima = f.read(block_size)
+    assert os.path.isfile(filename)
 
-        ima = binascii.hexlify(ima)
-        block = [number for number in ima]
+    with open(file=filename, mode="rb") as fin:
+        eof = False
+        content = fin.read(block_size)
+
+        block = [number for number in binascii.hexlify(content)]
 
         if block:
             yield block
 
-        while ima and not eof:
-            ima = f.read(block_size)
-            length_of_byte = len(ima)
+        while content and not eof:
+            content = fin.read(block_size)
+            len_byte = len(content)
 
-            if length_of_byte == 0:
+            if not len_byte:
                 continue
 
-            if length_of_byte < block_size:
-                for i in range(length_of_byte, block_size):
-                    ima += b'0'  # verbesserungswuerdig
-                eof = True  # when you have to fill up, it means you've reached eof
-            ima = binascii.hexlify(ima)
-            block = [number for number in ima]
+            if len_byte < block_size:
+                content += b'0'*(block_size-len_byte)
+                # when you have to fill up, it means you've reached eof
+                eof = True
+            block = [number for number in binascii.hexlify(content)]
             if block:
                 yield block
 
 
-#andere frage: wie schreibt man das dann wieder in die datei?
 if __name__ == '__main__':
-    my_aes  = AESInterface()
-    #my_aes.encrypt_file(filename='../../res/tWotW.txt')
-    my_aes.decrypt_file(filename="../../res/enc")
-    print('finish?')
+    my_aes = AESInterface()
+    # with open("../../res/enc", 'w') as fout:
+    #     for enc_block in my_aes.encrypt_file(filename='../../res/tWotW.txt'):
+    #         print(enc_block)
+    #         fout.write(enc_block + "\n")
+    for block in my_aes.decrypt_file(filename="../../res/enc"):
+        print(block)
+    # print('finish?')
 
 

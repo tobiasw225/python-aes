@@ -16,7 +16,7 @@ import numpy as np
 from res.mixColTables import *
 
 
-def mix_column(col: list) -> list:
+def mix_column(col: list) -> np.ndarray:
     """
 
     :param col:
@@ -26,10 +26,10 @@ def mix_column(col: list) -> list:
     b1 = col[0] ^ m2[col[1]] ^ m3[col[2]] ^ col[3]
     b2 = col[0] ^ col[1] ^ m2[col[2]] ^ m3[col[3]]
     b3 = m3[col[0]] ^ col[1] ^ col[2] ^ m2[col[3]]
-    return [b0, b1, b2, b3]
+    return np.array([b0, b1, b2, b3], dtype=int)
 
 
-def mix_column_inv(col: list) -> list:
+def mix_column_inv(col: list) -> np.ndarray:
     """
 
     :param col:
@@ -39,20 +39,23 @@ def mix_column_inv(col: list) -> list:
     r1 = m9[col[0]] ^ m14[col[1]] ^ m11[col[2]] ^ m13[col[3]]
     r2 = m13[col[0]] ^ m9[col[1]] ^ m14[col[2]] ^ m11[col[3]]
     r3 = m11[col[0]] ^ m13[col[1]] ^ m9[col[2]] ^ m14[col[3]]
-    return [r0, r1, r2, r3]
+    return np.array([r0, r1, r2, r3], dtype=int)
+
+
+# this matrix makes looping way easier.
+four_by_four_mat = np.arange(16).reshape((4, 4))
 
 
 def mix_columns(block: np.ndarray) -> np.ndarray:
     """
-    # MIT S-Alle Spalten (?)
     @todo doc
 
     :param block:
     :return:
     """
-    for row in np.arange(16).reshape((4, 4)):
-        block[row] = mix_column(block[row])
-    return block
+    return np.array([mix_column(block[row])
+                     for row in four_by_four_mat],
+                    dtype=int).reshape(-1)
 
 
 def mix_columns_inv(block: np.ndarray) -> np.ndarray:
@@ -62,9 +65,7 @@ def mix_columns_inv(block: np.ndarray) -> np.ndarray:
     :param block:
     :return:
     """
-    for row in np.arange(16).reshape((4, 4)):
-        # insert column.
-        block[row] = mix_column_inv(block[row])
-
-    return block
+    return np.array([mix_column_inv(block[row])
+                     for row in four_by_four_mat],
+                    dtype=int).reshape(-1)
 
