@@ -19,17 +19,22 @@ from sys import maxsize
 import binascii
 import os
 
+import numpy as np
+
 from python_aes.helper import get_key
 from python_aes.helper import process_block
 from python_aes.keyManager import *
 from python_aes.AES256 import encrypt
 from python_aes.AES256 import decrypt
 from python_aes.text_encoding import decode_block
+from python_aes.process_byte_files import block_to_byte
+from python_aes.process_byte_files import blocks_of_file
 
 mask = "<enctext>"
 
 
-class AESInterface():
+class AESInterface(object):
+
     def __init__(self):
         self.expanded_key = None
         self.key = None
@@ -44,7 +49,7 @@ class AESInterface():
         self.key = get_key(key_name)
         self.expanded_key = expand_key(self.key)
 
-    def encrypt_file(self, filename: str, output_file: str) -> str:
+    def encrypt_file(self, filename: str, output_file: str):
         """
             encrypts file block by block
             and returns the encrypted byte-string.
@@ -56,9 +61,11 @@ class AESInterface():
         last_block = self.init_vector
         with open(output_file, 'wb') as fout:
             for block in blocks_of_file(filename):
-                # block = np.bitwise_xor(block, last_block)
-                # last_block = encrypt(block, self.expanded_key)
-                fout.write(block_to_byte(encrypt(block, self.expanded_key)))
+                # cbc (comment out for ecb)
+                block = np.bitwise_xor(block, last_block)
+                last_block = encrypt(block, self.expanded_key)
+                fout.write(block_to_byte(last_block))
+
 
     def decrypt_file(self, filename: str, output_file: str):
         """
@@ -69,82 +76,33 @@ class AESInterface():
         """
         last_block = self.init_vector
         with open(output_file, 'wb') as fout:
-
-            dec_block = [0]*len(last_block)
+            _buffer = None
             for block in blocks_of_file(filename):
-                # cbc
+                dec_block = decrypt(block, self.expanded_key)
+                # cbc (comment out for ecb)
+                dec_block = np.bitwise_xor(last_block, dec_block)
 
-                # dec_block = decrypt(block, self.expanded_key)
-                # last_block = np.bitwise_xor(last_block, dec_block)
+                if _buffer is not None:
+                    fout.write(block_to_byte(_buffer))
+                _buffer = dec_block
+                last_block = block
 
-                # ecb -> plain stupid, but it works ;)
-                # @todo last block is still dangling.
-                dec_block = block_to_byte(decrypt(block, self.expanded_key))
-                fout.write(dec_block)
-
-
-def blocks_of_file(filename: str, block_size: int = 16):
-    """
-
-    :param block_size:
-    :param filename:
-    :return:
-    """
-    assert os.path.isfile(filename)
-    with open(file=filename, mode="rb") as fin:
-        eof = False
-        content = fin.read(block_size)
-
-        if content:
-            yield np.array([number for number in content])
-        while content and not eof:
-            content = fin.read(block_size)
-            len_byte = len(content)
-
-            if not len_byte:
-                continue
-
-            if len_byte < block_size:
-                content = [number for number in content]
-                content.extend([0]*(block_size-len_byte))
-                # when you have to fill up, it means you've reached eof
-                eof = True
-            if content:
-                yield np.array([number for number in content])
-
-
-def block_to_byte(block: np.ndarray) -> bytes:
-    """
-
-    :param block:
-    :return:
-    """
-    b_block = [hex(number)[2:].zfill(2) for number in block]
-    return binascii.unhexlify("".join(b_block))
+            # last block: remove all dangling elements.
+            _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
+            fout.write(block_to_byte(_buffer))
 
 
 if __name__ == '__main__':
     my_aes = AESInterface()
-    # this seems to be working.
     print(my_aes.init_vector)
-    filename = "/home/tobias/Schreibtisch/insert_protokoll.txt"
-    output_file = filename+'.enc'
+
+    filename = "/home/tobias/Schreibtisch/insert_protokoll{}.txt"
+    filename = "/home/tobias/Bilder/mail-logo{}.jpg"
+    output_file = filename.format('.enc')
     print(output_file)
-    my_aes.encrypt_file(filename=filename,
+    my_aes.encrypt_file(filename=filename.format(''),
                         output_file=output_file)
-    # decryption +- working, but can't read file.
-    dec_file = filename+'.dec'
-    # print(my_aes.init_vector, dec_file)
+    dec_file = filename.format('.dec')
+    print(my_aes.init_vector, dec_file)
     my_aes.decrypt_file(filename=output_file,
                         output_file=dec_file)
-
-# block = [number for number in binascii.hexlify(content)]
-# print([number for number in content])
-# # conversion of bytes to ascii (hex-utf-8-) string
-# dec = binascii.hexlify(content).decode('utf-8')
-# print(dec)
-# # conversion of numbers (which i will get back from the
-# # encryption) to bytes
-# print([hex(number) for number in content])
-# # this enables me to write data back into the file
-# print(binascii.unhexlify(dec))
