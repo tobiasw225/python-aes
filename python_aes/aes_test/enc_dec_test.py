@@ -41,9 +41,7 @@ class AsciiTestFile(unittest.TestCase):
         key = get_key("/home/tobias/mygits/python-aes/keys/gKey")
 
         blocks = text_file_to_blocks(filename="/home/tobias/mygits/python-aes/res/test.txt")
-
         expanded_key = expand_key(key)
-
         enc_blocks = [encrypt(block, expanded_key) for block in blocks]
         dec_blocks = [decrypt(block, expanded_key) for block in enc_blocks]
 
