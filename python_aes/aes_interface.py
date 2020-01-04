@@ -170,7 +170,6 @@ if __name__ == '__main__':
     print(enc)
     print(my_aes.decrypt(enc))
 
-
     my_aes = AESBytes()
     print(my_aes.init_vector)
 
