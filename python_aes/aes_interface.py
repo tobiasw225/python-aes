@@ -39,18 +39,31 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self.set_rand_key(key_name="/home/tobias/mygits/python-aes/keys/gKey")
-        self.init_vector = np.random.randint(0, 255, 16)
+        self.init_rand_key(key="/home/tobias/mygits/python-aes/keys/gKey")
+        self._init_vector = np.random.randint(0, 255, 16)
 
-    def set_rand_key(self, key_name: str = "../keys/gKey"):
+    @property
+    def init_vector(self):
+        return self._init_vector
+
+    @init_vector.setter
+    def init_vector(self, key: str):
+        """
+
+        :param key:
+        :return:
+        """
+        self._init_vector = get_key(key)
+
+    def init_rand_key(self, key: str = "../keys/gKey"):
         """
            default key: not sure if that's safe, but it's faster.
               (it's only for fun so far ;) )
 
-        :param key_name
+        :param key
         :return:
         """
-        self.key = get_key(key_name)
+        self.key = get_key(key)
         self.expanded_key = expand_key(self.key)
 
     @abstractmethod
@@ -87,13 +100,11 @@ class AESString(AESInterface):
         :return:
         """
         last_block = self.init_vector
-        blocks = string_to_blocks(mask + text + mask)
-        enc_block = []
+        blocks = string_to_blocks(text)
         for block in blocks:
             block = np.bitwise_xor(block, last_block)
             last_block = encrypt(block, self.expanded_key)
-            enc_block.append(last_block)
-        return "".join(["".join([str(format(sign, '02x')) for sign in block]) for block in enc_block])
+            yield "".join([str(format(sign, '02x')) for sign in last_block])
 
     def decrypt(self, text: str) -> str:
         """
@@ -101,12 +112,14 @@ class AESString(AESInterface):
         :return:
         """
         last_block = self.init_vector
-
         blocks = process_block(text)
         # if the block is less than 16 signs long append 0s
-        if len(blocks) % 16 == 0:
-            while len(blocks) % 16 != 0:
-                blocks.append(0)
+        # wird nicht benötigt!
+        # if len(blocks) % 16 == 0:
+        #     # when you have to fill up, it means you've reached eof
+        #     print( len(blocks) )
+        #     while len(blocks) % 16 != 0:
+        #         blocks.append(0)
         dec_blocks = []
 
         for block in chunks(blocks):
@@ -116,7 +129,7 @@ class AESString(AESInterface):
             dec_blocks.append(last_block)
             last_block = block
         # text is masked => extract only text
-        return "".join(decode_blocks_to_string(blocks=dec_blocks)).split(mask)[1]
+        return "".join(decode_blocks_to_string(blocks=dec_blocks))
 
 
 class AESBytes(AESInterface):
@@ -165,21 +178,55 @@ class AESBytes(AESInterface):
 
 if __name__ == '__main__':
     my_aes = AESString()
+    my_aes.init_rand_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
+    my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
 
-    enc = my_aes.encrypt("sehr gut.")
+    enc = ''
+    for _enc in my_aes.encrypt("123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"):
+        print(_enc)
+        enc += _enc
+
+    # enc = my_aes.encrypt("sehr gut.")
     print(enc)
     print(my_aes.decrypt(enc))
+    #
+    # my_aes = AESBytes()
+    # print(my_aes.init_vector)
+    #
+    #
+    # filename = "/home/tobias/Schreibtisch/insert_protokoll{}.txt"
+    # filename = "/home/tobias/Bilder/sample/Hummingbird{}.jpg"
+    # output_file = filename.format('.enc')
+    # print(output_file)
+    #
+    # start = time()
+    # my_aes.encrypt(filename=filename.format(''),
+    #                     output_file=output_file)
+    # print(time() - start)
+    # dec_file = filename.format('.dec')
+    # print(my_aes.init_vector, dec_file)
+    # start = time()
+    # my_aes.decrypt(filename=output_file,
+    #                output_file=dec_file)
+    # print(time() - start)
 
-    my_aes = AESBytes()
-    print(my_aes.init_vector)
 
-    filename = "/home/tobias/Schreibtisch/insert_protokoll{}.txt"
-    filename = "/home/tobias/Bilder/sample/octagon-nextcloud{}.png"
-    output_file = filename.format('.enc')
-    print(output_file)
-    my_aes.encrypt(filename=filename.format(''),
-                        output_file=output_file)
-    dec_file = filename.format('.dec')
-    print(my_aes.init_vector, dec_file)
-    my_aes.decrypt(filename=output_file,
-                   output_file=dec_file)
+    # import argparse
+    #
+    # parser = argparse.ArgumentParser()
+    #
+    # parser.add_argument("--init_vector", help="Filename of zip-archive.")
+    # parser.add_argument("--key", help="Key")
+    # args = parser.parse_args()
+    #
+    # init_vector = args.init_vector
+    # rand_key = args.key
+    #
+    #
+    # my_aes = AESString()
+    # my_aes.init_rand_key(rand_key)
+    # my_aes.init_vector = init_vector
+    # #
+    # enc = my_aes.encrypt("sehr gut.")
+    # print(enc)
+    # print(my_aes.decrypt(enc))

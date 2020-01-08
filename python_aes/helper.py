@@ -13,6 +13,7 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import random
+import os
 import re
 import numpy as np
 
@@ -57,14 +58,17 @@ def process_block(block: str) -> np.ndarray:
     return np.array(list(map(fmap, block)), dtype=int)
 
 
-def get_key(file: str) -> np.ndarray:
+def get_key(key: str) -> np.ndarray:
     """
 
-    :param file:
+    :param key:
     :return:
     """
-    with open(file, "r") as f:
-        return np.array(process_block(f.read()))
+    if os.path.isfile(key):
+        with open(key, "r") as f:
+            key = f.read()
+    return np.array(process_block(key))
+
 
 
 get_block = get_key
