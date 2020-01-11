@@ -87,6 +87,14 @@ class AESInterface(ABC):
         pass
 
 
+def f(x):
+    return chr(x)
+
+vf = np.vectorize(f)
+
+
+
+
 class AESString(AESInterface):
     """
 
@@ -113,13 +121,6 @@ class AESString(AESInterface):
         """
         last_block = self.init_vector
         blocks = process_block(text)
-        # if the block is less than 16 signs long append 0s
-        # wird nicht benötigt!
-        # if len(blocks) % 16 == 0:
-        #     # when you have to fill up, it means you've reached eof
-        #     print( len(blocks) )
-        #     while len(blocks) % 16 != 0:
-        #         blocks.append(0)
         dec_blocks = []
 
         for block in chunks(blocks):
@@ -128,7 +129,14 @@ class AESString(AESInterface):
             last_block = np.bitwise_xor(last_block, dec_block)
             dec_blocks.append(last_block)
             last_block = block
-        # text is masked => extract only text
+            # r = ""
+            # for i in range(16):
+            #     yield chr(block[i])
+            #     # try:
+            #     #     yield chr(block[i])
+            #     # except:
+            #     #     r += " "
+            # yield r
         return "".join(decode_blocks_to_string(blocks=dec_blocks))
 
 
@@ -171,6 +179,7 @@ class AESBytes(AESInterface):
                 _buffer = dec_block
                 last_block = block
 
+
             # last block: remove all dangling elements.
             _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
             fout.write(block_to_byte(_buffer))
@@ -183,13 +192,17 @@ if __name__ == '__main__':
 
     enc = ''
     for _enc in my_aes.encrypt("123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"):
-        print(_enc)
         enc += _enc
 
     # enc = my_aes.encrypt("sehr gut.")
     print(enc)
-    print(my_aes.decrypt(enc))
-    #
+    # print(my_aes.decrypt(enc))
+
+
+    ## todo with yield
+    for s in my_aes.decrypt(enc):
+        print(s, end="")
+
     # my_aes = AESBytes()
     # print(my_aes.init_vector)
     #

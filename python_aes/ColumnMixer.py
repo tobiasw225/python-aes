@@ -13,7 +13,7 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import numpy as np
-from res.mixColTables import *
+from mixColTables import *
 
 
 def mix_column(col: list) -> np.ndarray:

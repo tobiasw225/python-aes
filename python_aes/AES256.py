@@ -20,8 +20,8 @@ from python_aes.ColumnMixer import *
 from python_aes.RowShifter import *
 from python_aes.keyManager import *
 from python_aes.AddRoundKey import add_roundkey
-from python_aes.res.sboxInv import *
-from python_aes.res.sbox import *
+from sboxInv import *
+from sbox import *
 
 
 def encrypt(block: np.ndarray,

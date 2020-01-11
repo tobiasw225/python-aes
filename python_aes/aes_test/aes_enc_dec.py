@@ -1,26 +1,12 @@
-import unittest
 import numpy as np
-
-from python_aes.helper import get_block
-from python_aes.helper import get_key
 
 from python_aes.AES256 import encrypt
 from python_aes.AES256 import decrypt
 
 
-class AESTest(unittest.TestCase):
-    """
-        Test with simple predefined block.
+def test_aes(key, test_block):
+    # Test with simple predefined block.
+    enc_block = encrypt(test_block, key)
+    dec_block = decrypt(enc_block, key)
+    assert np.allclose(dec_block, test_block) is True
 
-    """
-    def test_something(self):
-
-        key = get_key("/home/tobias/mygits/python-aes/res/testKey")
-        test_block = get_block("/home/tobias/mygits/python-aes/res/testBlock")
-        enc_block = encrypt(test_block, key)
-        dec_block = decrypt(enc_block, key)
-        self.assertEqual(np.allclose(dec_block, test_block), True)
-
-
-if __name__ == '__main__':
-    unittest.main()
