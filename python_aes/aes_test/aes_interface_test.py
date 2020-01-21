@@ -10,7 +10,16 @@ def test_if_string_dec_equal_original(test_string):
     assert test_string == dec_string
 
 
-def test_if_dec_byte_equal_original(original_byte_file, dec_byte_file, enc_byte_file):
+def test_wiki_articles(random_wiki_articles):
+    my_aes = AESString()
+    for article in random_wiki_articles:
+        enc = "".join(s for s in my_aes.encrypt(article))
+        dec_string = "".join(s for s in my_aes.decrypt(enc)).strip()
+        assert dec_string == article.strip()
+
+
+def test_if_dec_byte_equal_original(original_byte_file,
+                                    dec_byte_file, enc_byte_file):
     my_aes = AESBytes()
     my_aes.encrypt(filename=original_byte_file,
                    output_file=enc_byte_file)

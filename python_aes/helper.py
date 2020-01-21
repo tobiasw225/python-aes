@@ -84,3 +84,50 @@ def chunks(blocks, n: int = 16):
     """
     for i in range(0, len(blocks), n):
         yield blocks[i:i + n]
+
+
+"""
+    get_random.py
+
+    MediaWiki API Demos
+    Demo of `Random` module: Get request to list 5 random pages.
+
+    MIT License
+"""
+
+
+import requests
+
+
+def get_random_wiki_articles(n: int):
+    """
+
+    :param n:
+    :return:
+    """
+    S = requests.Session()
+    URL = "https://en.wikipedia.org/w/api.php"
+    PARAMS = {
+        "action": "query",
+        "format": "json",
+        "list": "random",
+        "rnlimit": f"{n}"
+    }
+    R = S.get(url=URL, params=PARAMS)
+    DATA = R.json()
+    RANDOMS = DATA["query"]["random"]
+    PARAMS = {
+        "action": "query",
+        "format": "json",
+        "prop": "extracts",
+        "exlimit": "max",
+        "explaintext": "true",
+        "titles": "|".join(r['title'] for r in RANDOMS)
+    }
+    # crawl actual articles
+    R = S.get(url=URL, params=PARAMS)
+    DATA = R.json()
+    for article in DATA['query']['pages'].values():
+        # some articles have no text.
+        yield f"{article['title']}\n{article.get('extract', '')}"
+

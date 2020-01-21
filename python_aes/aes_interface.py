@@ -11,7 +11,9 @@
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
+
 import os
+
 from abc import abstractmethod
 from abc import ABC
 
@@ -20,14 +22,13 @@ from python_aes.keyManager import *
 from python_aes.AES256 import encrypt
 from python_aes.AES256 import decrypt
 from python_aes.text_encoding import string_to_blocks
-from python_aes.text_encoding import decode_blocks_to_string
+from python_aes.text_encoding import text_blocks
+from python_aes.text_encoding import chr_decode
 from python_aes.helper import process_block
 from python_aes.helper import chunks
 
 from python_aes.process_byte_files import block_to_byte
 from python_aes.process_byte_files import blocks_of_file
-
-mask = "<enctext>"
 
 
 class AESInterface(ABC):
@@ -87,14 +88,6 @@ class AESInterface(ABC):
         pass
 
 
-def f(x):
-    return chr(x)
-
-vf = np.vectorize(f)
-
-
-
-
 class AESString(AESInterface):
     """
 
@@ -121,23 +114,11 @@ class AESString(AESInterface):
         """
         last_block = self.init_vector
         blocks = process_block(text)
-        dec_blocks = []
-
         for block in chunks(blocks):
-            # i want to have nice chunks of 16 numbers
             dec_block = decrypt(block, self.expanded_key)
             last_block = np.bitwise_xor(last_block, dec_block)
-            dec_blocks.append(last_block)
+            yield "".join([chr_decode(c) for c in last_block])
             last_block = block
-            # r = ""
-            # for i in range(16):
-            #     yield chr(block[i])
-            #     # try:
-            #     #     yield chr(block[i])
-            #     # except:
-            #     #     r += " "
-            # yield r
-        return "".join(decode_blocks_to_string(blocks=dec_blocks))
 
 
 class AESBytes(AESInterface):
@@ -179,29 +160,107 @@ class AESBytes(AESInterface):
                 _buffer = dec_block
                 last_block = block
 
-
             # last block: remove all dangling elements.
             _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
             fout.write(block_to_byte(_buffer))
 
+from itertools import cycle
+
+
+def xor(data, key):
+    # return ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(data, cycle(key)))
+    return [a ^ b for (a, b) in zip(bytes(data, 'utf-8'), cycle(bytes(key, 'utf-8')))]
+
+def hex_string(block):
+    return "".join(str(format(sign, '02x')) for sign in block)
+
+
+def generate_nonce(d_type, block_size: int=16):
+    """
+
+    :param d_type:
+    :param block_size:
+    :return:
+    """
+    l = list(np.random.randint(0, 255, block_size))
+    if d_type == 'int':
+        return l
+    elif d_type == 'str':
+        return hex_string(l)
+
+
+class AESStringCTR(AESInterface):
+    """
+
+    """
+    def __init__(self, block_size: int = 16):
+        super().__init__()
+        self.ctr = 0
+        self._nonce = np.zeros(block_size, dtype=int)
+        # first half is for nonce rest is for counter
+        self.block_size = block_size
+        #self._nonce[:block_size//2] = list(np.random.randint(0, 255, block_size//2))
+        self._nonce[:block_size//2] = generate_nonce(d_type='int', block_size=block_size//2)
+
+    def nonce(self, i):
+        ctr = str(i).zfill(self.block_size//2)
+        ctr_block = [ord(i) for i in ctr]
+        _nonce = self._nonce
+        _nonce[self.block_size//2:] = ctr_block
+        return _nonce
+
+    def encrypt(self, text: str) -> str:
+        """
+        :param text:
+        :return:
+        """
+        # could be simplefied, i don't need the 'block-digits'.
+        blocks = text_blocks(text, block_size=32)
+        for i, block in enumerate(blocks):
+            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+            enc_nonce = hex_string(enc_nonce)
+            # print(len(block), len(enc_nonce), i)
+
+            yield xor(block, enc_nonce)
+
+    def decrypt(self, text: str) -> str:
+        """
+        :param text: encrypted
+        :return:
+        """
+        # two hex-digits -> one sign.
+        blocks = text_blocks(text, 32)
+        for i, block in enumerate(text):
+            dec_nonce = decrypt(self.nonce(i), self.expanded_key)
+            # dec_nonce = "".join(str(format(sign, '02x')) for sign in dec_nonce)
+            # print(len(block), len(dec_nonce), i)
+            # print(dec_nonce, block)
+            r = [a ^ b for (a, b) in zip(block, cycle(dec_nonce))]
+            #yield r#bytes(xor(block, dec_nonce))#.decode()
+            yield bytes([c for c in r])
+
+
 
 if __name__ == '__main__':
-    my_aes = AESString()
+    my_aes = AESStringCTR()
     my_aes.init_rand_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
     my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
 
-    enc = ''
-    for _enc in my_aes.encrypt("123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"):
-        enc += _enc
+    test_string = "123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"
+    # enc = "".join(s for s in my_aes.encrypt(test_string))
+    # enc = my_aes.encrypt(test_string)
+    enc = list(my_aes.encrypt(test_string))
 
-    # enc = my_aes.encrypt("sehr gut.")
     print(enc)
-    # print(my_aes.decrypt(enc))
+    # dec = "".join(s for s in my_aes.decrypt(enc))
+    dec =  list(my_aes.decrypt(enc))
+    print('decrypted')
+    print(dec)
+    # print()
+    # print('congrats!' if dec == test_string else 'pitty...')
+    # print(test_string)
 
-
-    ## todo with yield
-    for s in my_aes.decrypt(enc):
-        print(s, end="")
+    ###
 
     # my_aes = AESBytes()
     # print(my_aes.init_vector)
@@ -224,22 +283,5 @@ if __name__ == '__main__':
     # print(time() - start)
 
 
-    # import argparse
-    #
-    # parser = argparse.ArgumentParser()
-    #
-    # parser.add_argument("--init_vector", help="Filename of zip-archive.")
-    # parser.add_argument("--key", help="Key")
-    # args = parser.parse_args()
-    #
-    # init_vector = args.init_vector
-    # rand_key = args.key
-    #
-    #
-    # my_aes = AESString()
-    # my_aes.init_rand_key(rand_key)
-    # my_aes.init_vector = init_vector
-    # #
-    # enc = my_aes.encrypt("sehr gut.")
-    # print(enc)
-    # print(my_aes.decrypt(enc))
+
+

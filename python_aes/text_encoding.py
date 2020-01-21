@@ -33,6 +33,19 @@ def string_to_blocks(text: str) -> np.ndarray:
     return reshape_blocks(blocks=[ord(c) for c in text])
 
 
+def text_blocks(text: str, block_size: int):
+    """
+
+    :param text:
+    :return:
+    """
+    my_chars = [c for c in text]
+    i = 0
+    while i < len(my_chars):
+        yield "".join(my_chars[i:i+block_size])
+        i += block_size
+
+
 def reshape_blocks(blocks: list) -> np.ndarray:
     """
         reshape blocks from simple list
@@ -61,6 +74,13 @@ def text_file_to_blocks(filename: str) -> np.ndarray:
     with open(filename, "r") as fin:
         text = fin.read()
     return reshape_blocks(blocks=[ord(c) for c in text])
+
+
+def chr_decode(c) -> str:
+    try:
+        return chr(c)
+    except:
+        return ''
 
 
 def decode_blocks_to_string(blocks: list):
