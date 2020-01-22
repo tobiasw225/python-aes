@@ -29,6 +29,7 @@ from python_aes.helper import chunks
 
 from python_aes.process_byte_files import block_to_byte
 from python_aes.process_byte_files import blocks_of_file
+from python_aes.process_byte_files import blocks_of_string
 
 
 class AESInterface(ABC):
@@ -199,7 +200,6 @@ class AESStringCTR(AESInterface):
         self._nonce = np.zeros(block_size, dtype=int)
         # first half is for nonce rest is for counter
         self.block_size = block_size
-        #self._nonce[:block_size//2] = list(np.random.randint(0, 255, block_size//2))
         self._nonce[:block_size//2] = generate_nonce(d_type='int', block_size=block_size//2)
 
     def nonce(self, i):
@@ -214,30 +214,29 @@ class AESStringCTR(AESInterface):
         :param text:
         :return:
         """
-        # could be simplefied, i don't need the 'block-digits'.
-        blocks = text_blocks(text, block_size=32)
+        blocks = blocks_of_string(text, block_size=128)
         for i, block in enumerate(blocks):
-            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+            enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
             enc_nonce = hex_string(enc_nonce)
-            # print(len(block), len(enc_nonce), i)
+            block = bytes(block).decode()
+            enc_block = [a ^ b for (a, b) in zip(bytes(block, 'utf-8'),
+                                                 cycle(bytes(enc_nonce, 'utf-8')))]
+            yield block_to_byte(enc_block)
 
-            yield xor(block, enc_nonce)
-
-    def decrypt(self, text: str) -> str:
+    def decrypt(self, text_blocks: str) -> str:
         """
-        :param text: encrypted
+        :param text_blocks: encrypted
         :return:
         """
-        # two hex-digits -> one sign.
-        blocks = text_blocks(text, 32)
-        for i, block in enumerate(text):
-            dec_nonce = decrypt(self.nonce(i), self.expanded_key)
-            # dec_nonce = "".join(str(format(sign, '02x')) for sign in dec_nonce)
-            # print(len(block), len(dec_nonce), i)
-            # print(dec_nonce, block)
-            r = [a ^ b for (a, b) in zip(block, cycle(dec_nonce))]
-            #yield r#bytes(xor(block, dec_nonce))#.decode()
-            yield bytes([c for c in r])
+        for i, block in enumerate(text_blocks):
+            dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
+            dec_nonce = hex_string(dec_nonce)
+            dec_text = [a ^ b for (a, b) in zip(bytes(block),
+                                                cycle(bytes(dec_nonce, 'utf-8')))]
+            # remove dangling elements.
+            if 0 in dec_text:
+                dec_text = list(filter(None, dec_text))
+            yield bytes(dec_text).decode()
 
 
 
@@ -247,17 +246,15 @@ if __name__ == '__main__':
     my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
 
     test_string = "123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"
-    # enc = "".join(s for s in my_aes.encrypt(test_string))
-    # enc = my_aes.encrypt(test_string)
+
     enc = list(my_aes.encrypt(test_string))
 
     print(enc)
-    # dec = "".join(s for s in my_aes.decrypt(enc))
-    dec =  list(my_aes.decrypt(enc))
+    dec = "".join(s for s in my_aes.decrypt(enc))
     print('decrypted')
     print(dec)
-    # print()
-    # print('congrats!' if dec == test_string else 'pitty...')
+    print()
+    print('congrats!' if dec == test_string else 'pitty...')
     # print(test_string)
 
     ###

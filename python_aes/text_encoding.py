@@ -24,13 +24,15 @@
 import numpy as np
 
 
-def string_to_blocks(text: str) -> np.ndarray:
+def string_to_blocks(text: str, block_size: int) -> np.ndarray:
     """
 
     :param text:
+    :param block_size:
     :return:
     """
-    return reshape_blocks(blocks=[ord(c) for c in text])
+    return reshape_blocks(blocks=[ord(c) for c in text],
+                          block_size=block_size)
 
 
 def text_blocks(text: str, block_size: int):
@@ -46,22 +48,23 @@ def text_blocks(text: str, block_size: int):
         i += block_size
 
 
-def reshape_blocks(blocks: list) -> np.ndarray:
+def reshape_blocks(blocks: list, block_size: int=16) -> np.ndarray:
     """
         reshape blocks from simple list
         to list of lists and add a default-value
         (whitespace)
 
     :param blocks:
+    :param block_size:
     :return:
     """
     # add missing spaces.
-    future_len = len(blocks) + 16-(len(blocks) % 16)
-    n_rows = future_len // 16
+    future_len = len(blocks) + block_size-(len(blocks) % block_size)
+    n_rows = future_len // block_size
     # 32 ~ whitespace
     new_blocks = np.full(future_len, dtype=int, fill_value=32)
     new_blocks[:len(blocks)] = blocks
-    new_blocks = new_blocks.reshape((n_rows, 16))
+    new_blocks = new_blocks.reshape((n_rows, block_size))
     return new_blocks
 
 

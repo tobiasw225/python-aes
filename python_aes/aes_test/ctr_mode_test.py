@@ -31,14 +31,14 @@ def test_enc_dec_step(test_string):
 
 def test_enc_dec_full(random_wiki_articles):
     my_aes = AESStringCTR()
-
-    blocks = text_blocks(random_wiki_articles, block_size=32)
+    blocks = text_blocks(random_wiki_articles, block_size=128)
     for i, block in enumerate(blocks):
-        enc_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
+        enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
         enc_nonce = hex_string(enc_nonce)
         enc_block = [a ^ b for (a, b) in zip(bytes(block, 'utf-8'),
                                              cycle(bytes(enc_nonce, 'utf-8')))]
-        dec_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
+
+        dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
         dec_nonce = hex_string(dec_nonce)
         assert enc_nonce == dec_nonce
         dec_text = [a ^ b for (a, b) in zip(bytes(enc_block),
