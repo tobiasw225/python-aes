@@ -11,41 +11,34 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
-
-import random
+import requests
 import os
 import re
+from itertools import cycle
+from functools import partial
+
 import numpy as np
 
 
-def print_block(block: list):
+def hex_string(block):
+    return "".join(str(format(sign, '02x')) for sign in block)
+
+
+def generate_nonce(d_type, block_size: int=16):
     """
 
-    :param block:
+    :param d_type:
+    :param block_size:
     :return:
     """
-    for i in range(0, 16, 4):
-        print("\t".join(block[i:i+4]))
-        print("\n")
+    l = list(np.random.randint(0, 255, block_size))
+    if d_type == 'int':
+        return l
+    elif d_type == 'str':
+        return hex_string(l)
 
 
-def rand_key() -> str:
-    """
-
-    :return:
-    """
-    rk = np.random.randint(0, 255, 32)
-    rk = [format(i,  '02x') for i in rk]
-    return "".join(rk)
-
-
-def fmap(x):
-    """
-
-    :param x:
-    :return:
-    """
-    return int(x, 16)
+rand_key = partial(generate_nonce, 'str')
 
 
 def process_block(block: str) -> np.ndarray:
@@ -55,7 +48,7 @@ def process_block(block: str) -> np.ndarray:
     :return:
     """
     block = re.findall('..', block)  # splits the string in 2pairs
-    return np.array(list(map(fmap, block)), dtype=int)
+    return np.array(list(map(lambda x: int(x, 16), block)), dtype=int)
 
 
 def get_key(key: str) -> np.ndarray:
@@ -68,7 +61,6 @@ def get_key(key: str) -> np.ndarray:
         with open(key, "r") as f:
             key = f.read()
     return np.array(process_block(key))
-
 
 
 get_block = get_key
@@ -96,38 +88,40 @@ def chunks(blocks, n: int = 16):
 """
 
 
-import requests
-
-
 def get_random_wiki_articles(n: int):
     """
 
     :param n:
     :return:
     """
-    S = requests.Session()
-    URL = "https://en.wikipedia.org/w/api.php"
-    PARAMS = {
+    session = requests.Session()
+    url = "https://en.wikipedia.org/w/api.php"
+    res = session.get(url=url, params={
         "action": "query",
         "format": "json",
         "list": "random",
         "rnlimit": f"{n}"
-    }
-    R = S.get(url=URL, params=PARAMS)
-    DATA = R.json()
-    RANDOMS = DATA["query"]["random"]
-    PARAMS = {
+    })
+    data = res.json()
+    articles = data["query"]["random"]
+    # crawl actual articles
+    res = session.get(url=url, params={
         "action": "query",
         "format": "json",
         "prop": "extracts",
         "exlimit": "max",
         "explaintext": "true",
-        "titles": "|".join(r['title'] for r in RANDOMS)
-    }
-    # crawl actual articles
-    R = S.get(url=URL, params=PARAMS)
-    DATA = R.json()
-    for article in DATA['query']['pages'].values():
+        "titles": "|".join(r['title'] for r in articles)
+    })
+    data = res.json()
+    for article in data['query']['pages'].values():
         # some articles have no text.
         yield f"{article['title']}\n{article.get('extract', '')}"
+
+
+def xor(data, key):
+    return [a ^ b for (a, b) in zip(bytes(data, 'utf-8'), cycle(bytes(key, 'utf-8')))]
+
+
+
 

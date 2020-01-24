@@ -76,6 +76,5 @@ def decrypt(block: np.ndarray,
             block = sbox_inv[block]
             block = add_roundkey(block, ri)
             block = mix_columns_inv(block)
-
     return block
 

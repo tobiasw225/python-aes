@@ -16,13 +16,14 @@ import os
 
 from abc import abstractmethod
 from abc import ABC
+from itertools import cycle
 
+from helper import hex_string, generate_nonce
 from python_aes.helper import get_key
 from python_aes.keyManager import *
 from python_aes.AES256 import encrypt
 from python_aes.AES256 import decrypt
 from python_aes.text_encoding import string_to_blocks
-from python_aes.text_encoding import text_blocks
 from python_aes.text_encoding import chr_decode
 from python_aes.helper import process_block
 from python_aes.helper import chunks
@@ -165,30 +166,6 @@ class AESBytes(AESInterface):
             _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
             fout.write(block_to_byte(_buffer))
 
-from itertools import cycle
-
-
-def xor(data, key):
-    # return ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(data, cycle(key)))
-    return [a ^ b for (a, b) in zip(bytes(data, 'utf-8'), cycle(bytes(key, 'utf-8')))]
-
-def hex_string(block):
-    return "".join(str(format(sign, '02x')) for sign in block)
-
-
-def generate_nonce(d_type, block_size: int=16):
-    """
-
-    :param d_type:
-    :param block_size:
-    :return:
-    """
-    l = list(np.random.randint(0, 255, block_size))
-    if d_type == 'int':
-        return l
-    elif d_type == 'str':
-        return hex_string(l)
-
 
 class AESStringCTR(AESInterface):
     """
@@ -200,21 +177,32 @@ class AESStringCTR(AESInterface):
         self._nonce = np.zeros(block_size, dtype=int)
         # first half is for nonce rest is for counter
         self.block_size = block_size
-        self._nonce[:block_size//2] = generate_nonce(d_type='int', block_size=block_size//2)
+        self._nonce[:block_size//2] = generate_nonce(d_type='int',
+                                                     block_size=block_size // 2)
 
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size//2)
-        ctr_block = [ord(i) for i in ctr]
         _nonce = self._nonce
-        _nonce[self.block_size//2:] = ctr_block
+        _nonce[self.block_size//2:] = [ord(i) for i in ctr]
         return _nonce
+
+    def set_nonce(self, nonce: str):
+        """
+
+        :param nonce:
+        :return:
+        """
+        nonce = process_block(nonce)
+        self.block_size = len(nonce)*2
+        self._nonce = np.zeros(self.block_size, dtype=int)
+        self._nonce[:self.block_size // 2] = nonce
 
     def encrypt(self, text: str) -> str:
         """
         :param text:
         :return:
         """
-        blocks = blocks_of_string(text, block_size=128)
+        blocks = blocks_of_string(text, block_size=16)
         for i, block in enumerate(blocks):
             enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
             enc_nonce = hex_string(enc_nonce)
@@ -228,6 +216,9 @@ class AESStringCTR(AESInterface):
         :param text_blocks: encrypted
         :return:
         """
+        # b''.join(b)
+        # slicing possible
+
         for i, block in enumerate(text_blocks):
             dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
             dec_nonce = hex_string(dec_nonce)
@@ -239,11 +230,13 @@ class AESStringCTR(AESInterface):
             yield bytes(dec_text).decode()
 
 
-
 if __name__ == '__main__':
     my_aes = AESStringCTR()
     my_aes.init_rand_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
+    #my_aes.init_rand_key('4a1f2880612cb624e25bf8d591f9c85a55f4f910ac894fabe4624222bf6a979df7680e19cf81957de4352c35f6446811468faed236bdcfbd92c56bc458c081d8282b01f1190fba81761bf857845be0893e6fb3e00f88e728d34a90cc189d29abf704dd511fb1251e1a63f3bc03f1e5c1822978d0786363669bcd1cb25366b5a9')
     my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
+    # @todo
+    # my_aes.set_nonce('b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b')
 
     test_string = "123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"
 

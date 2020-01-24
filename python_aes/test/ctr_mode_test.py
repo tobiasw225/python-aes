@@ -1,8 +1,10 @@
 
 from itertools import cycle
-from python_aes.aes_interface import AESStringCTR, generate_nonce, hex_string, xor
+from python_aes.aes_interface import AESStringCTR
+from helper import xor, hex_string, generate_nonce
 from python_aes.text_encoding import string_to_blocks, text_blocks
 from python_aes.AES256 import encrypt, decrypt
+
 
 def test_xor(test_string):
     my_aes = AESStringCTR()
