@@ -42,7 +42,7 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self.init_rand_key(key="/home/tobias/mygits/python-aes/keys/gKey")
+        self.set_key(key="/home/tobias/mygits/python-aes/keys/gKey")
         self._init_vector = np.random.randint(0, 255, 16)
 
     @property
@@ -58,10 +58,10 @@ class AESInterface(ABC):
         """
         self._init_vector = get_key(key)
 
-    def init_rand_key(self, key: str = "../keys/gKey"):
+    def set_key(self, key: str = "../keys/gKey"):
         """
-           default key: not sure if that's safe, but it's faster.
-              (it's only for fun so far ;) )
+            The key can be either a file (plain-text hex-digits)
+            or passed as string.
 
         :param key
         :return:
@@ -107,7 +107,7 @@ class AESString(AESInterface):
         for block in blocks:
             block = np.bitwise_xor(block, last_block)
             last_block = encrypt(block, self.expanded_key)
-            yield "".join([str(format(sign, '02x')) for sign in last_block])
+            yield hex_string(last_block)
 
     def decrypt(self, text: str) -> str:
         """
@@ -232,7 +232,7 @@ class AESStringCTR(AESInterface):
 
 if __name__ == '__main__':
     my_aes = AESStringCTR()
-    my_aes.init_rand_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
+    my_aes.set_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
     #my_aes.init_rand_key('4a1f2880612cb624e25bf8d591f9c85a55f4f910ac894fabe4624222bf6a979df7680e19cf81957de4352c35f6446811468faed236bdcfbd92c56bc458c081d8282b01f1190fba81761bf857845be0893e6fb3e00f88e728d34a90cc189d29abf704dd511fb1251e1a63f3bc03f1e5c1822978d0786363669bcd1cb25366b5a9')
     my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
     # @todo

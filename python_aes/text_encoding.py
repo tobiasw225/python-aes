@@ -93,11 +93,7 @@ def decode_blocks_to_string(blocks: list):
     :return:
     """
     for block in blocks:
-        for i in range(16):
-            try:
-                yield chr(block[i])
-            except:
-                yield " "
+        yield "".join([chr_decode(c) for c in block])
 
 
 def write_decoded_text(blocks: list, filename: str):
