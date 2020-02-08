@@ -2,40 +2,13 @@ from __future__ import division , absolute_import
 from __future__ import print_function, unicode_literals
 
 
-from python_aes.AES256 import encrypt
-from python_aes.AES256 import decrypt
-
-from python_aes.readBlockFile import get_blocks
+from python_aes.aes256 import encrypt
+from python_aes.aes256 import decrypt
+from python_aes.helper import hex_string
+from python_aes.read_block_file import get_blocks
 from python_aes.helper import get_key
-from python_aes.keyManager import *
+from python_aes.key_manager import *
 from python_aes.text_encoding import *
-
-"""
-    Function to generate a random 32-Bit Key which is saved in gKey
-"""
-
-
-def block_to_text(block: list):
-    """
-
-    :param block:
-    :return:
-    """
-    for sign in block:
-        yield str(format(sign, '02x'))
-    yield '\n'
-
-
-def encrypt_text(text: str, key: list) -> list:
-    """
-
-    :param text:
-    :return:
-    """
-    blocks = string_to_blocks(text)
-    expanded_key = expand_key(key)
-    enc_blocks = [encrypt(block, expanded_key) for block in blocks]
-    return enc_blocks
 
 
 def encrypt_file(key: list,
@@ -60,10 +33,10 @@ def encrypt_file(key: list,
 
     with open(output_file, 'w') as fout:
         for block in blocks:
-            fout.write("".join(
-                block_to_text(
+            fout.write(
+                hex_string(
                     encrypt(block, expanded_key)
-                )))
+                ))
 
 
 def decrypt_file(key: list,
@@ -77,7 +50,7 @@ def decrypt_file(key: list,
     """
     blocks = get_blocks(filename)
     expanded_key = expand_key(key)
-    dec_blocks= [decrypt(block,expanded_key) for block in blocks]
+    dec_blocks = [decrypt(block, expanded_key) for block in blocks]
     if enc == 'ascii':
         return "".join(decode_blocks_to_string(dec_blocks))
     if enc == 'utf-8':
@@ -88,5 +61,7 @@ if __name__ == '__main__':
 
     filename = "../res/test.txt"
     key = get_key("../keys/gKey")
-    encrypt_file(key=key, filename=filename, output_file='../res/encrypted')
+    encrypt_file(key=key,
+                 filename=filename,
+                 output_file='../res/encrypted')
     print(decrypt_file(key=key, filename="../res/encrypted"))

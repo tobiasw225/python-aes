@@ -17,20 +17,21 @@ import os
 from abc import abstractmethod
 from abc import ABC
 from itertools import cycle
+from typing import List
 
 from helper import hex_string, generate_nonce
 from python_aes.helper import get_key
-from python_aes.keyManager import *
-from python_aes.AES256 import encrypt
-from python_aes.AES256 import decrypt
+from python_aes.key_manager import *
+from python_aes.aes256 import encrypt
+from python_aes.aes256 import decrypt
 from python_aes.text_encoding import string_to_blocks
 from python_aes.text_encoding import chr_decode
 from python_aes.helper import process_block
 from python_aes.helper import chunks
 
-from python_aes.process_byte_files import block_to_byte
-from python_aes.process_byte_files import blocks_of_file
-from python_aes.process_byte_files import blocks_of_string
+from python_aes.process_bytes import block_to_byte
+from python_aes.process_bytes import blocks_of_file
+from python_aes.process_bytes import blocks_of_string
 
 
 class AESInterface(ABC):
@@ -174,9 +175,11 @@ class AESStringCTR(AESInterface):
     def __init__(self, block_size: int = 16):
         super().__init__()
         self.ctr = 0
-        self._nonce = np.zeros(block_size, dtype=int)
-        # first half is for nonce rest is for counter
+        # first half is for nonce, rest is for counter
         self.block_size = block_size
+        assert block_size == 16
+        # dummy nonce for testing.
+        self._nonce = np.zeros(block_size, dtype=int)
         self._nonce[:block_size//2] = generate_nonce(d_type='int',
                                                      block_size=block_size // 2)
 
@@ -193,7 +196,7 @@ class AESStringCTR(AESInterface):
         :return:
         """
         nonce = process_block(nonce)
-        self.block_size = len(nonce)*2
+        assert len(nonce)*2 == self.block_size
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[:self.block_size // 2] = nonce
 
@@ -202,23 +205,21 @@ class AESStringCTR(AESInterface):
         :param text:
         :return:
         """
-        blocks = blocks_of_string(text, block_size=16)
+        blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
-            enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
+            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
             enc_nonce = hex_string(enc_nonce)
-            block = bytes(block).decode()
             enc_block = [a ^ b for (a, b) in zip(bytes(block, 'utf-8'),
                                                  cycle(bytes(enc_nonce, 'utf-8')))]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: str) -> str:
+    def decrypt(self, text_blocks: List[str]) -> str:
         """
         :param text_blocks: encrypted
         :return:
         """
         # b''.join(b)
         # slicing possible
-
         for i, block in enumerate(text_blocks):
             dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
             dec_nonce = hex_string(dec_nonce)
@@ -231,18 +232,16 @@ class AESStringCTR(AESInterface):
 
 
 if __name__ == '__main__':
-    my_aes = AESStringCTR()
+    my_aes = AESStringCTR(block_size=16)
     my_aes.set_key('8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1')
-    #my_aes.init_rand_key('4a1f2880612cb624e25bf8d591f9c85a55f4f910ac894fabe4624222bf6a979df7680e19cf81957de4352c35f6446811468faed236bdcfbd92c56bc458c081d8282b01f1190fba81761bf857845be0893e6fb3e00f88e728d34a90cc189d29abf704dd511fb1251e1a63f3bc03f1e5c1822978d0786363669bcd1cb25366b5a9')
     my_aes.init_vector = '7950b9c141ad3d6805dea8585bc71b4b'
-    # @todo
-    # my_aes.set_nonce('b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b')
+    my_aes.set_nonce('b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b'[:16])
 
     test_string = "123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"
 
     enc = list(my_aes.encrypt(test_string))
 
-    print(enc)
+    # print(enc)
     dec = "".join(s for s in my_aes.decrypt(enc))
     print('decrypted')
     print(dec)
@@ -271,7 +270,3 @@ if __name__ == '__main__':
     # my_aes.decrypt(filename=output_file,
     #                output_file=dec_file)
     # print(time() - start)
-
-
-
-

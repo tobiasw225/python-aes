@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: iso-8859-15 -*-
 #
-# __filename__: RowShifter.py
+# __filename__: row_shifter.py
 #
 # __description__:
 #

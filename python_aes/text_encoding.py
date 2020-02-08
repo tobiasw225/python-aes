@@ -5,7 +5,7 @@
 #
 # __description__: Functions to convert the given Text to numbers
 #         and following that converting them to block of the
-#         size of 16 numbers (numbersToFields)
+#         size of 16 numbers
 #
 #         Decoding Function which can be used to derive a text out of a given
 #         (decoded) block.
@@ -38,34 +38,31 @@ def string_to_blocks(text: str, block_size: int) -> np.ndarray:
 def text_blocks(text: str, block_size: int):
     """
 
+    :param block_size:
     :param text:
     :return:
     """
-    my_chars = [c for c in text]
     i = 0
-    while i < len(my_chars):
-        yield "".join(my_chars[i:i+block_size])
+    while i < len(text):
+        yield "".join(text[i:i + block_size])
         i += block_size
 
 
-def reshape_blocks(blocks: list, block_size: int=16) -> np.ndarray:
+def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
     """
         reshape blocks from simple list
         to list of lists and add a default-value
-        (whitespace)
+        (whitespace : 32)
 
     :param blocks:
     :param block_size:
     :return:
     """
-    # add missing spaces.
-    future_len = len(blocks) + block_size-(len(blocks) % block_size)
+    future_len = len(blocks) + block_size - (len(blocks) % block_size)
     n_rows = future_len // block_size
-    # 32 ~ whitespace
     new_blocks = np.full(future_len, dtype=int, fill_value=32)
     new_blocks[:len(blocks)] = blocks
-    new_blocks = new_blocks.reshape((n_rows, block_size))
-    return new_blocks
+    return new_blocks.reshape((n_rows, block_size))
 
 
 def text_file_to_blocks(filename: str) -> np.ndarray:
@@ -82,7 +79,7 @@ def text_file_to_blocks(filename: str) -> np.ndarray:
 def chr_decode(c) -> str:
     try:
         return chr(c)
-    except:
+    except Exception:
         return ''
 
 
@@ -114,31 +111,6 @@ def write_decoded_text(blocks: list, filename: str):
 """
 
 
-def encode_block(letters: str, enc: str = 'utf-8') -> list:
-    """
-        from letters to numbers
-        -> 4 letters utf-16
-        ->  8 for utf-8
-
-    :param letters:
-    :param enc:
-    :return:
-    """
-    enc_letters = []
-    end = 16
-    if enc == "utf-16":
-        end = 4
-
-    for j in range(end):
-        enc_l = bytes(letters[j], encoding=enc)
-        enc_letters.extend(enc_l)
-    # fill up rest with zeros.
-    enc_letters.extend([0] * (16 - len(enc_letters)))
-
-    #assert len(encoded_letters) <= 16
-    return enc_letters[:16]  # das kann gar nicht sein. @todo
-
-
 def decode_block(block: list, enc: str = 'utf-8'):
     """
         from numbers to letters
@@ -147,10 +119,7 @@ def decode_block(block: list, enc: str = 'utf-8'):
     :param enc:
     :return:
     """
-    step = 2
-    if enc == "utf-16":
-        step = 4
-
+    step = 4 if enc == "utf-16" else 2
     b_block = [bytes(block[i:i + step]) for i in range(0, 16, step)]
     signs = []
     for sign in b_block:
@@ -163,34 +132,7 @@ def decode_block(block: list, enc: str = 'utf-8'):
         except UnicodeDecodeError:
             sign = ""
         signs.append(sign)
-
     return "".join(signs)
-
-
-def text_to_utf(filename: str, enc: str = 'utf-8')-> list:
-    """
-
-    :param filename:
-    :param enc:
-    :return:
-    """
-    blocks = []
-    end = 16
-    if enc == "utf-16":
-        end = 4
-
-    with open(filename, "r", encoding=enc) as fin:
-        while True:
-            letters = fin.read(end)
-            if len(letters) < end:
-                break
-            encoded_block = encode_block(letters, enc)
-
-            assert len(encoded_block) == 16
-
-            blocks.append(encoded_block)
-
-        return blocks
 
 
 def utf_to_text(blocks: list, enc: str):
@@ -202,3 +144,21 @@ def utf_to_text(blocks: list, enc: str):
     """
     for block in blocks:
         yield decode_block(block, enc)
+
+
+def text_to_utf(filename: str, enc: str = 'utf-8') -> list:
+    """
+
+    :param filename:
+    :param enc:
+    :return:
+    """
+    end = 4 if enc == "utf-16" else 16
+    with open(filename, "rb") as fin:
+        while letters := fin.read(end):
+            len_byte = len(letters)
+            content = [number for number in letters]
+            if len_byte < end:
+                # when you have to fill up, it means you've reached eof
+                content.extend([0] * (end - len_byte))
+            yield content

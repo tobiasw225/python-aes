@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: iso-8859-15 -*-
 #
-# __filename__: keyManager.py
+# __filename__: key_manager.py
 #
 # __description__:
 #
@@ -55,18 +55,19 @@ def expand_key(key: np.ndarray) -> np.ndarray:
         if c % 32 == 16:
             # For 256-bit keys, we add an extra sbox to the calculation.
             word = sbox[word]
-
         key[c: c + 4] = key[c-32: c+4-32] ^ word
         c += 4
-
     return key
 
 
-def create_round_key(expanded_key: np.ndarray, n: int) -> np.ndarray:
+def create_round_key(expanded_key: np.ndarray,
+                     n: int,
+                     key_length: int = 16) -> np.ndarray:
     """
 
+    :param key_length:
     :param expanded_key:
     :param n:
     :return:
     """
-    return expanded_key[n:n+16]
+    return expanded_key[n:n+key_length]

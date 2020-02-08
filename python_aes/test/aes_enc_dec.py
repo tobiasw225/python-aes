@@ -1,7 +1,7 @@
 import numpy as np
 
-from python_aes.AES256 import encrypt
-from python_aes.AES256 import decrypt
+from python_aes.aes256 import encrypt
+from python_aes.aes256 import decrypt
 
 
 def test_aes(key, test_block):

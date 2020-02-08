@@ -1,13 +1,7 @@
-import unittest
-
-import numpy as np
-from python_aes.AES256 import encrypt
-from python_aes.AES256 import decrypt
-
-
-from python_aes.keyManager import *
+from python_aes.aes256 import decrypt
+from python_aes.aes256 import encrypt
+from python_aes.key_manager import *
 from python_aes.text_encoding import *
-from python_aes.helper import get_key
 
 
 def test_ascii_string(key, test_string):
