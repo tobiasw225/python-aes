@@ -11,9 +11,11 @@
 #
 # Created by Tobias Wenzel in December 2019
 # Copyright (c) 2019 Tobias Wenzel
-import os
 import binascii
+import os
+
 import numpy as np
+
 from python_aes.helper import chunks
 
 
@@ -43,9 +45,9 @@ def blocks_of_string(text: str, block_size: int = 16) -> np.ndarray:
     :param text:
     :return:
     """
-    text = bytes(text, 'utf-8')
+    text = bytes(text, "utf-8")
     for i, block in enumerate(chunks(text, n=block_size)):
-        yield bytes(fill_byte_block(block, block_size)).decode('utf-8')
+        yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
 
 
 def block_to_byte(block) -> bytes:

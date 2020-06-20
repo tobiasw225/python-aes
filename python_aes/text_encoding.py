@@ -31,8 +31,7 @@ def string_to_blocks(text: str, block_size: int) -> np.ndarray:
     :param block_size:
     :return:
     """
-    return reshape_blocks(blocks=[ord(c) for c in text],
-                          block_size=block_size)
+    return reshape_blocks(blocks=[ord(c) for c in text], block_size=block_size)
 
 
 def text_blocks(text: str, block_size: int):
@@ -44,7 +43,7 @@ def text_blocks(text: str, block_size: int):
     """
     i = 0
     while i < len(text):
-        yield "".join(text[i:i + block_size])
+        yield "".join(text[i: i + block_size])
         i += block_size
 
 
@@ -61,11 +60,11 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
     future_len = len(blocks) + block_size - (len(blocks) % block_size)
     n_rows = future_len // block_size
     new_blocks = np.full(future_len, dtype=int, fill_value=32)
-    new_blocks[:len(blocks)] = blocks
+    new_blocks[: len(blocks)] = blocks
     return new_blocks.reshape((n_rows, block_size))
 
 
-def text_file_to_blocks(filename: str) -> np.ndarray:
+def ascii_file_to_blocks(filename: str) -> np.ndarray:
     """
 
     :param filename:
@@ -80,29 +79,7 @@ def chr_decode(c) -> str:
     try:
         return chr(c)
     except Exception:
-        return ''
-
-
-def decode_blocks_to_string(blocks: list):
-    """
-
-    :param blocks:
-    :return:
-    """
-    for block in blocks:
-        yield "".join([chr_decode(c) for c in block])
-
-
-def write_decoded_text(blocks: list, filename: str):
-    """
-
-    :param blocks:
-    :param filename:
-    :return:
-    """
-    with open(filename, "w") as fout:
-        for block in decode_blocks_to_string(blocks):
-            fout.write(block)
+        return ""
 
 
 """
@@ -111,48 +88,55 @@ def write_decoded_text(blocks: list, filename: str):
 """
 
 
-def decode_block(block: list, enc: str = 'utf-8'):
+def decode_block(block: list, encoding: str = "utf-8"):
     """
         from numbers to letters
 
     :param block:
-    :param enc:
+    :param encoding:
     :return:
     """
-    step = 4 if enc == "utf-16" else 2
-    b_block = [bytes(block[i:i + step]) for i in range(0, 16, step)]
+    step = 4 if encoding == "utf-16" else 2
+    b_block = [bytes(block[i: i + step]) for i in range(0, 16, step)]
     signs = []
     for sign in b_block:
         # For some reason, I get extra \x00 signs,
         # when I call bytes() in this script. This
         # does not happen when called on the console.
-        sign = sign.replace(b'\x00', b'')
+        sign = sign.replace(b"\x00", b"")
         try:
-            sign = sign.decode(enc)
+            sign = sign.decode(encoding)
         except UnicodeDecodeError:
             sign = ""
         signs.append(sign)
     return "".join(signs)
 
 
-def utf_to_text(blocks: list, enc: str):
+def blocks_to_string(blocks: list, encoding: str = "ascii"):
     """
 
     :param blocks:
-    :param enc:
+    :param encoding:
     :return:
     """
-    for block in blocks:
-        yield decode_block(block, enc)
+    if encoding == "ascii":
+        for block in blocks:
+            yield "".join([chr_decode(c) for c in block])
+    else:
+        for block in blocks:
+            yield decode_block(block, encoding)
 
 
-def text_to_utf(filename: str, encoding: str = 'utf-8') -> list:
+def text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
     """
+        letters to numbers
 
     :param filename:
     :param encoding:
     :return:
     """
+    if encoding == "ascii":
+        return ascii_file_to_blocks(filename)
     end = 4 if encoding == "utf-16" else 16
     with open(filename, "rb") as fin:
         while letters := fin.read(end):

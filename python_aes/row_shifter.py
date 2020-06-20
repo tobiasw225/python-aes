@@ -14,8 +14,7 @@
 import numpy as np
 
 
-def shift_block(block: np.ndarray,
-                invert: bool = False) -> np.ndarray:
+def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
     """
     @todo doc
 
@@ -44,7 +43,7 @@ def shift_block(block: np.ndarray,
 
             if not invert:
                 #  Every index is subtracted by 4 to get the new one
-                new_indices = indices-4
+                new_indices = indices - 4
                 new_indices[new_indices < 0] += 16
             else:
                 # Every index is added by 4 to get the new one

@@ -19,10 +19,9 @@ def test_wiki_articles(random_wiki_articles):
 
 
 def test_if_dec_byte_equal_original(original_byte_file,
-                                    dec_byte_file, enc_byte_file):
+                                    dec_byte_file,
+                                    enc_byte_file):
     my_aes = AESBytes()
-    my_aes.encrypt(filename=original_byte_file,
-                   output_file=enc_byte_file)
-    my_aes.decrypt(filename=enc_byte_file,
-                   output_file=dec_byte_file)
+    my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
+    my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
     assert filecmp.cmp(original_byte_file, dec_byte_file) is True

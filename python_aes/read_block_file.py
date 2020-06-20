@@ -11,7 +11,7 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
-import numpy as np
+
 from python_aes.helper import process_block
 
 
@@ -23,5 +23,3 @@ def get_blocks(file: str) -> list:
     """
     with open(file, "r") as fin:
         return [process_block(block) for block in fin]
-
-

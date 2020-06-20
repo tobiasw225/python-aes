@@ -13,6 +13,7 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import numpy as np
+
 from python_aes.mix_col_tables import *
 
 
@@ -53,9 +54,9 @@ def mix_columns(block: np.ndarray) -> np.ndarray:
     :param block:
     :return:
     """
-    return np.array([mix_column(block[row])
-                     for row in four_by_four_mat],
-                    dtype=int).reshape(-1)
+    return np.array(
+        [mix_column(block[row]) for row in four_by_four_mat], dtype=int
+    ).reshape(-1)
 
 
 def mix_columns_inv(block: np.ndarray) -> np.ndarray:
@@ -65,7 +66,6 @@ def mix_columns_inv(block: np.ndarray) -> np.ndarray:
     :param block:
     :return:
     """
-    return np.array([mix_column_inv(block[row])
-                     for row in four_by_four_mat],
-                    dtype=int).reshape(-1)
-
+    return np.array(
+        [mix_column_inv(block[row]) for row in four_by_four_mat], dtype=int
+    ).reshape(-1)

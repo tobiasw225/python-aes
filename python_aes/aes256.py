@@ -7,17 +7,16 @@
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
 
-
-from python_aes.ColumnMixer import *
-from python_aes.row_shifter import *
-from python_aes.key_manager import *
+import numpy as np
 from python_aes.add_round_key import add_roundkey
-from python_aes.sbox_inv import *
+from python_aes.ColumnMixer import *
+from python_aes.key_manager import *
+from python_aes.row_shifter import *
 from python_aes.sbox import *
+from python_aes.sbox_inv import *
 
 
-def encrypt(block: np.ndarray,
-            expanded_key: np.ndarray) -> np.ndarray:
+def encrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
     """
     >>> key = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
     >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255])
@@ -42,8 +41,7 @@ def encrypt(block: np.ndarray,
     return block
 
 
-def decrypt(block: np.ndarray,
-            expanded_key: np.ndarray) -> np.ndarray:
+def decrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
     """
     >>> key = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
     >>> enc = np.array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255])
@@ -68,4 +66,3 @@ def decrypt(block: np.ndarray,
             if i != 0:
                 block = mix_columns_inv(block)
     return block
-
