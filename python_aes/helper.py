@@ -11,6 +11,7 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
+import numpy
 import requests
 import os
 import re
@@ -123,5 +124,10 @@ def xor(data, key):
     return [a ^ b for (a, b) in zip(bytes(data, 'utf-8'), cycle(bytes(key, 'utf-8')))]
 
 
+def sample_nonce(block_size):
+    _nonce = np.zeros(block_size, dtype=int)
+    _nonce[:block_size // 2] = generate_nonce(d_type='int',
+                                              block_size=block_size // 2)
+    return _nonce
 
-
+print(get_key("00112233445566778899aabbccddeeff").__repr__())

@@ -12,8 +12,8 @@
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
 
-from rcon import *
-from sbox import *
+from python_aes.rcon import *
+from python_aes.sbox import *
 
 
 def key_schedule_core(word: np.ndarray, it_no: int) -> list:

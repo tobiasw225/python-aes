@@ -19,7 +19,7 @@ from abc import ABC
 from itertools import cycle
 from typing import List
 
-from helper import hex_string, generate_nonce
+from python_aes.helper import hex_string, sample_nonce
 from python_aes.helper import get_key
 from python_aes.key_manager import *
 from python_aes.aes256 import encrypt
@@ -104,7 +104,7 @@ class AESString(AESInterface):
         :return:
         """
         last_block = self.init_vector
-        blocks = string_to_blocks(text)
+        blocks = string_to_blocks(text, block_size=16)
         for block in blocks:
             block = np.bitwise_xor(block, last_block)
             last_block = encrypt(block, self.expanded_key)
@@ -178,10 +178,7 @@ class AESStringCTR(AESInterface):
         # first half is for nonce, rest is for counter
         self.block_size = block_size
         assert block_size == 16
-        # dummy nonce for testing.
-        self._nonce = np.zeros(block_size, dtype=int)
-        self._nonce[:block_size//2] = generate_nonce(d_type='int',
-                                                     block_size=block_size // 2)
+        self._nonce = sample_nonce(block_size)
 
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size//2)
@@ -190,21 +187,12 @@ class AESStringCTR(AESInterface):
         return _nonce
 
     def set_nonce(self, nonce: str):
-        """
-
-        :param nonce:
-        :return:
-        """
         nonce = process_block(nonce)
         assert len(nonce)*2 == self.block_size
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[:self.block_size // 2] = nonce
 
     def encrypt(self, text: str) -> str:
-        """
-        :param text:
-        :return:
-        """
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
             enc_nonce = encrypt(self.nonce(i), self.expanded_key)

@@ -13,7 +13,7 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import numpy as np
-from mix_col_tables import *
+from python_aes.mix_col_tables import *
 
 
 def mix_column(col: list) -> np.ndarray:

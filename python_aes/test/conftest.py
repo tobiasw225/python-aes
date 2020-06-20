@@ -2,7 +2,7 @@ import os
 import pytest
 from python_aes.helper import get_key
 from python_aes.helper import get_block
-from helper import get_random_wiki_articles
+from python_aes.helper import get_random_wiki_articles
 
 folder = "/home/tobias/mygits/python-aes/res/"
 

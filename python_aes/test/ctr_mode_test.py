@@ -1,7 +1,7 @@
 
 from itertools import cycle
 
-from helper import hex_string
+from python_aes.helper import hex_string, sample_nonce
 from python_aes.aes256 import encrypt
 from python_aes.aes_interface import AESStringCTR
 from python_aes.text_encoding import text_blocks
@@ -34,7 +34,8 @@ def test_enc_dec_step(test_string):
 
 def test_enc_dec_full(random_wiki_articles):
     my_aes = AESStringCTR()
-    blocks = text_blocks(random_wiki_articles, block_size=128)
+    # my_aes.set_nonce(sample_nonce(16))
+    blocks = text_blocks(random_wiki_articles, block_size=16)
     for i, block in enumerate(blocks):
         enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
         enc_nonce = hex_string(enc_nonce)

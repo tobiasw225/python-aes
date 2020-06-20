@@ -14,23 +14,13 @@ from python_aes.text_encoding import *
 def encrypt_file(key: list,
                  filename: str,
                  output_file: str,
-                 enc: str = 'utf-8'):
-    """
-
-    :param key:
-    :param filename:
-    :param output_file:
-    :param enc:
-    :return:
-    """
+                 encoding: str = 'utf-8'):
     blocks = []
-    if enc == 'utf-8':
-        blocks = text_to_utf(enc='utf-8', filename=filename)
-    if enc == 'ascii':
+    if encoding == 'utf-8':
+        blocks = text_to_utf(encoding='utf-8', filename=filename)
+    if encoding == 'ascii':
         blocks = text_file_to_blocks(filename)
-
     expanded_key = expand_key(key)
-
     with open(output_file, 'w') as fout:
         for block in blocks:
             fout.write(
@@ -41,20 +31,14 @@ def encrypt_file(key: list,
 
 def decrypt_file(key: list,
                  filename: str,
-                 enc: str = 'utf-8'):
-    """
-    :param key:
-    :param filename:
-    :param enc:
-    :return:
-    """
+                 encoding: str = 'utf-8') -> str:
     blocks = get_blocks(filename)
     expanded_key = expand_key(key)
     dec_blocks = [decrypt(block, expanded_key) for block in blocks]
-    if enc == 'ascii':
+    if encoding == 'ascii':
         return "".join(decode_blocks_to_string(dec_blocks))
-    if enc == 'utf-8':
-        return "".join(utf_to_text(dec_blocks, enc=enc))
+    if encoding == 'utf-8':
+        return "".join(utf_to_text(dec_blocks, enc=encoding))
     
 
 if __name__ == '__main__':

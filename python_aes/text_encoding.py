@@ -146,14 +146,14 @@ def utf_to_text(blocks: list, enc: str):
         yield decode_block(block, enc)
 
 
-def text_to_utf(filename: str, enc: str = 'utf-8') -> list:
+def text_to_utf(filename: str, encoding: str = 'utf-8') -> list:
     """
 
     :param filename:
-    :param enc:
+    :param encoding:
     :return:
     """
-    end = 4 if enc == "utf-16" else 16
+    end = 4 if encoding == "utf-16" else 16
     with open(filename, "rb") as fin:
         while letters := fin.read(end):
             len_byte = len(letters)
