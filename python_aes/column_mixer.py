@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: iso-8859-15 -*-
 #
-# __filename__: ColumnMixer.py
+# __filename__: column_mixer.py
 #
 # __description__:
 #
@@ -11,6 +11,7 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
+# flake8: noqa
 
 import numpy as np
 

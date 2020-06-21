@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: iso-8859-15 -*-
 #
-# __filename__: aes_inteface.py
+# __filename__: aes_interface.py
 #
 # __description__: use this class to encrypt/ decrypt strings with aes256
 #
 # __remark__:
 #
-# __todos__: randkey
+# __todos__:
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
@@ -17,7 +17,7 @@ import os
 from abc import ABC, abstractmethod
 from itertools import cycle
 from typing import List
-
+from pathlib import Path
 from python_aes.aes256 import decrypt, encrypt
 from python_aes.helper import (chunks, get_key, hex_string, process_block,
                                sample_nonce)
@@ -30,7 +30,6 @@ from python_aes.text_encoding import chr_decode, string_to_blocks
 class AESInterface(ABC):
     """
         Interface for AES implementations Text & Byte
-
     """
 
     def __init__(self):
@@ -86,7 +85,11 @@ class AESInterface(ABC):
 
 class AESString(AESInterface):
     """
-
+    >>> my_aes = AESString()
+    >>> enc = "".join(s for s in my_aes.encrypt('test string'))
+    >>> dec_string = "".join(s for s in my_aes.decrypt(enc)).rstrip()
+    >>> print(dec_string)
+    test string
     """
 
     def __init__(self):
@@ -119,6 +122,17 @@ class AESString(AESInterface):
 
 
 class AESBytes(AESInterface):
+    """
+    >>> my_aes = AESBytes()
+    >>> filename = "res/test.jpg"
+    >>> output_file = "res/test.enc.jpg"
+    >>> dec_file = "res/test.dec.jpg"
+    >>> my_aes.encrypt(filename=filename, output_file=output_file)
+    >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
+    >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
+    True
+
+    """
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
@@ -150,12 +164,10 @@ class AESBytes(AESInterface):
                 dec_block = decrypt(block, self.expanded_key)
                 # cbc (comment out for ecb)
                 dec_block = np.bitwise_xor(last_block, dec_block)
-
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
                 last_block = block
-
             # last block: remove all dangling elements.
             _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
             fout.write(block_to_byte(_buffer))
@@ -163,7 +175,17 @@ class AESBytes(AESInterface):
 
 class AESStringCTR(AESInterface):
     """
-
+    >>> my_aes = AESStringCTR()
+    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    >>> my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
+    >>> my_aes.set_nonce(\
+        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    )
+    >>> test_string = "123456sehr gut."
+    >>> enc = my_aes.encrypt(test_string)
+    >>> dec = "".join(s for s in my_aes.decrypt(enc))
+    >>> print(dec) # doctest: +NORMALIZE_WHITESPACE
+        123456sehr gut.
     """
 
     def __init__(self, block_size: int = 16):
@@ -177,7 +199,7 @@ class AESStringCTR(AESInterface):
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
         _nonce = self._nonce
-        _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
+        _nonce[self.block_size // 2:] = [ord(i) for i in ctr]
         return _nonce
 
     def set_nonce(self, nonce: str):
@@ -207,7 +229,7 @@ class AESStringCTR(AESInterface):
         # b''.join(b)
         # slicing possible
         for i, block in enumerate(text_blocks):
-            dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
+            dec_nonce = encrypt(self.nonce(i), self.expanded_key)
             dec_nonce = hex_string(dec_nonce)
             dec_text = [
                 a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
@@ -218,44 +240,3 @@ class AESStringCTR(AESInterface):
             yield bytes(dec_text).decode()
 
 
-if __name__ == "__main__":
-    my_aes = AESStringCTR(block_size=16)
-    my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
-    my_aes.set_nonce(
-        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]
-    )
-
-    test_string = "123456sehr gut. ich bin dann doch etwas müde heute abend und sumpfe hier nur rum ;)"
-
-    enc = list(my_aes.encrypt(test_string))
-
-    # print(enc)
-    dec = "".join(s for s in my_aes.decrypt(enc))
-    print("decrypted")
-    print(dec)
-    print()
-    print("congrats!" if dec == test_string else "pitty...")
-    # print(test_string)
-
-    ###
-
-    # my_aes = AESBytes()
-    # print(my_aes.init_vector)
-    #
-    #
-    # filename = "/home/tobias/Schreibtisch/insert_protokoll{}.txt"
-    # filename = "/home/tobias/Bilder/sample/Hummingbird{}.jpg"
-    # output_file = filename.format('.enc')
-    # print(output_file)
-    #
-    # start = time()
-    # my_aes.encrypt(filename=filename.format(''),
-    #                     output_file=output_file)
-    # print(time() - start)
-    # dec_file = filename.format('.dec')
-    # print(my_aes.init_vector, dec_file)
-    # start = time()
-    # my_aes.decrypt(filename=output_file,
-    #                output_file=dec_file)
-    # print(time() - start)
