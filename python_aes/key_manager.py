@@ -36,7 +36,9 @@ def key_schedule_core(word: np.ndarray, iteration: int) -> list:
 
 def expand_key(key: np.ndarray) -> np.ndarray:
     """
-    >>> key = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+    >>> key = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, \
+    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,\
+     27, 28, 29, 30, 31])
     >>> res = expand_key(key)
     >>> print(res.__repr__())
     array([  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,

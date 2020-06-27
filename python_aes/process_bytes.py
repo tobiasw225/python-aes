@@ -26,12 +26,6 @@ def fill_byte_block(block, block_size):
 
 
 def blocks_of_file(filename: str, block_size: int = 16) -> np.ndarray:
-    """
-
-    :param block_size:
-    :param filename:
-    :return:
-    """
     assert os.path.isfile(filename)
     with open(file=filename, mode="rb") as fin:
         while block := fin.read(block_size):
@@ -39,22 +33,11 @@ def blocks_of_file(filename: str, block_size: int = 16) -> np.ndarray:
 
 
 def blocks_of_string(text: str, block_size: int = 16) -> np.ndarray:
-    """
-
-    :param block_size:
-    :param text:
-    :return:
-    """
     text = bytes(text, "utf-8")
     for i, block in enumerate(chunks(text, n=block_size)):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
 
 
 def block_to_byte(block) -> bytes:
-    """
-
-    :param block:
-    :return:
-    """
     b_block = [hex(number)[2:].zfill(2) for number in block]
     return binascii.unhexlify("".join(b_block))

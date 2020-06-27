@@ -42,11 +42,12 @@ rand_key = partial(generate_nonce, "str")
 
 def process_block(block: str) -> np.ndarray:
     """
-
+        splits the string in 2pairs
+        ...
     :param block:
     :return:
     """
-    block = re.findall("..", block)  # splits the string in 2pairs
+    block = re.findall("..", block)  #
     return np.array(list(map(lambda x: int(x, 16), block)), dtype=int)
 
 

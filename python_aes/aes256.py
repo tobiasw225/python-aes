@@ -12,8 +12,7 @@ from python_aes.add_round_key import add_roundkey
 from python_aes.column_mixer import mix_columns_inv, mix_columns
 from python_aes.key_manager import create_round_key
 from python_aes.row_shifter import shift_block
-from python_aes.sbox import sbox
-from python_aes.sbox_inv import sbox_inv
+from python_aes.sbox import sbox, sbox_inv
 
 
 def encrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
