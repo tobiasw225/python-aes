@@ -19,11 +19,9 @@ from itertools import cycle
 from typing import List
 from pathlib import Path
 from python_aes.aes256 import decrypt, encrypt
-from python_aes.helper import (chunks, get_key, hex_string, process_block,
-                               sample_nonce)
+from python_aes.helper import chunks, get_key, hex_string, process_block, sample_nonce
 from python_aes.key_manager import expand_key
-from python_aes.process_bytes import (block_to_byte, blocks_of_file,
-                                      blocks_of_string)
+from python_aes.process_bytes import block_to_byte, blocks_of_file, blocks_of_string
 from python_aes.text_encoding import chr_decode, string_to_blocks
 
 
@@ -133,6 +131,7 @@ class AESBytes(AESInterface):
     True
 
     """
+
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
@@ -199,7 +198,7 @@ class AESStringCTR(AESInterface):
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
         _nonce = self._nonce
-        _nonce[self.block_size // 2:] = [ord(i) for i in ctr]
+        _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
         return _nonce
 
     def set_nonce(self, nonce: str):
@@ -238,5 +237,3 @@ class AESStringCTR(AESInterface):
             if 0 in dec_text:
                 dec_text = list(filter(None, dec_text))
             yield bytes(dec_text).decode()
-
-

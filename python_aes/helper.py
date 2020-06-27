@@ -75,16 +75,14 @@ def chunks(blocks, n: int = 16):
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i: i + n]
+        yield blocks[i : i + n]
 
 
 def xor(data, key):
-    return [a ^ b for (a, b) in zip(bytes(data, "utf-8"),
-                                    cycle(bytes(key, "utf-8")))]
+    return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
 
 
 def sample_nonce(block_size):
     _nonce = np.zeros(block_size, dtype=int)
-    _nonce[: block_size // 2] = generate_nonce(d_type="int",
-                                               block_size=block_size // 2)
+    _nonce[: block_size // 2] = generate_nonce(d_type="int", block_size=block_size // 2)
     return _nonce

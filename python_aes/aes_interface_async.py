@@ -20,12 +20,22 @@ from itertools import cycle
 from typing import List
 from pathlib import Path
 from python_aes.aes256 import decrypt, encrypt
-from python_aes.helper import (chunks, get_key, hex_string, process_block,
-                               sample_nonce)
+from python_aes.helper import chunks, get_key, hex_string, process_block, sample_nonce
 from python_aes.key_manager import expand_key
-from python_aes.process_bytes import (block_to_byte, blocks_of_file,
-                                      blocks_of_string)
+from python_aes.process_bytes import (
+    block_to_byte,
+    blocks_of_file,
+    fill_byte_block,
+    blocks_of_string,
+)
 from python_aes.text_encoding import chr_decode, string_to_blocks
+
+
+# async def blocks_of_file(filename: str, block_size: int = 16) -> np.ndarray:
+#     assert os.path.isfile(filename)
+#     async with aiof.open(file=filename, mode="rb") as fin:
+#         while block := await fin.read(block_size):
+#             yield np.array(fill_byte_block(block, block_size))
 
 
 class AESInterface(ABC):
@@ -123,38 +133,26 @@ class AESBytesECB(AESInterface):
     # True
 
     """
-    async def encrypt(self, filename: str, output_file: str):
-        """
-            encrypts file block by block
-            and returns the encrypted byte-string.
 
-        :param filename:
-        :return:
-        """
+    async def encrypt(self, filename: str, output_file: str):
         assert os.path.isfile(filename)
         async with aiof.open(output_file, "wb") as fout:
-            for block in blocks_of_file(filename):
-                # already works, but i don't think
-                # this is what i need.
-                last_block = encrypt(block, self.expanded_key)
-                await fout.write(block_to_byte(last_block))
-                # await fout.flush()
+            async with aiof.open(file=filename, mode="rb") as fin:
+                while block := await fin.read(self.block_size):
+                    block = np.array(fill_byte_block(block, self.block_size))
+                    last_block = encrypt(block, self.expanded_key)
+                    await fout.write(block_to_byte(last_block))
 
     async def decrypt(self, filename: str, output_file: str):
-        """
-
-        :param filename:
-        :param output_file:
-        :return:
-        """
         async with aiof.open(output_file, "wb") as fout:
             _buffer = None
-            # in blocks of file async todo
-            for block in blocks_of_file(filename):
-                dec_block = decrypt(block, self.expanded_key)
-                if _buffer is not None:
-                    await fout.write(block_to_byte(_buffer))
-                _buffer = dec_block
+            async with aiof.open(file=filename, mode="rb") as fin:
+                while block := await fin.read(self.block_size):
+                    block = np.array(fill_byte_block(block, self.block_size))
+                    dec_block = decrypt(block, self.expanded_key)
+                    if _buffer is not None:
+                        await fout.write(block_to_byte(_buffer))
+                    _buffer = dec_block
             # last block: remove all dangling elements.
             _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
             await fout.write(block_to_byte(_buffer))
@@ -189,7 +187,7 @@ class AESStringCTR(AESInterface):
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
         _nonce = self._nonce
-        _nonce[self.block_size // 2:] = [ord(i) for i in ctr]
+        _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
         return _nonce
 
     def set_nonce(self, nonce: str):
@@ -203,9 +201,7 @@ class AESStringCTR(AESInterface):
         enc_nonce = hex_string(enc_nonce)
         enc_block = [
             a ^ b
-            for (a, b) in zip(
-                bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
-            )
+            for (a, b) in zip(bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
         ]
         return block_to_byte(enc_block)
 
@@ -238,8 +234,8 @@ class AESStringCTR(AESInterface):
         return events
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # i think i need some sleep.
     try:
         loop = asyncio.get_event_loop()
         my_aes = AESBytesECB()
@@ -253,5 +249,3 @@ if __name__ == '__main__':
         raise e
     finally:
         loop.close()
-
-

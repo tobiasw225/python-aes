@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from python_aes.aes256 import decrypt, encrypt
 from python_aes.helper import get_key, hex_string
@@ -30,11 +29,7 @@ if __name__ == "__main__":
     key = get_key("../keys/gKey")
     # todo fix
     encrypt_file(
-        key=key, filename=filename,
-        output_file="../res/encrypted",
-        encoding="ascii"
+        key=key, filename=filename, output_file="../res/encrypted", encoding="ascii"
     )
-    for line in decrypt_file(key=key,
-                             filename="../res/encrypted",
-                             encoding="ascii"):
+    for line in decrypt_file(key=key, filename="../res/encrypted", encoding="ascii"):
         print(line)

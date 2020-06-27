@@ -72,7 +72,7 @@ def expand_key(key: np.ndarray) -> np.ndarray:
 
     while c < 240:
         # Copy the temporary variable.
-        word = key[c - 4: c]
+        word = key[c - 4 : c]
         if c % 32 == 0:
             # Every eight sets, do a complex calculation.
             # (c % 32)-1 ~ i+1
@@ -80,7 +80,7 @@ def expand_key(key: np.ndarray) -> np.ndarray:
         if c % 32 == 16:
             # For 256-bit keys, we add an extra sbox to the calculation.
             word = sbox[word]
-        key[c: c + 4] = key[c - 32: c + 4 - 32] ^ word
+        key[c : c + 4] = key[c - 32 : c + 4 - 32] ^ word
         c += 4
     return key
 
@@ -116,4 +116,4 @@ def create_round_key(
     :param n:
     :return:
     """
-    return expanded_key[n: n + key_length]
+    return expanded_key[n : n + key_length]
