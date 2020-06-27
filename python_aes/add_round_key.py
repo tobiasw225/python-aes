@@ -21,5 +21,5 @@ def add_roundkey(round_key: np.ndarray, block: np.ndarray) -> np.ndarray:
     :param block:
     :return:
     """
-    assert len(block) == len(round_key)
+    assert block.size == round_key.size
     return np.array([rk ^ b for rk, b in zip(round_key, block)])
