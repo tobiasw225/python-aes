@@ -25,6 +25,7 @@ from python_aes.key_manager import expand_key
 from python_aes.process_bytes import (block_to_byte, blocks_of_file,
                                       blocks_of_string)
 from python_aes.text_encoding import chr_decode, string_to_blocks
+import multiprocessing as mp
 
 
 class AESInterface(ABC):
@@ -44,11 +45,6 @@ class AESInterface(ABC):
 
     @init_vector.setter
     def init_vector(self, key: str):
-        """
-
-        :param key:
-        :return:
-        """
         self._init_vector = get_key(key)
 
     def set_key(self, key: str = "../keys/gKey"):
@@ -64,22 +60,10 @@ class AESInterface(ABC):
 
     @abstractmethod
     def encrypt(self, *args, **kwargs):
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
         pass
 
     @abstractmethod
     def decrypt(self, *args, **kwargs):
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
         pass
 
 
@@ -121,9 +105,9 @@ class AESString(AESInterface):
             last_block = block
 
 
-class AESBytes(AESInterface):
+class AESBytesECB(AESInterface):
     """
-    >>> my_aes = AESBytes()
+    >>> my_aes = AESBytesECB()
     >>> filename = "res/test.jpg"
     >>> output_file = "res/test.enc.jpg"
     >>> dec_file = "res/test.dec.jpg"
@@ -133,22 +117,29 @@ class AESBytes(AESInterface):
     True
 
     """
+    
+    def encrypt_block(self, block):
+        return encrypt(block, self.expanded_key)
+        
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
             and returns the encrypted byte-string.
 
+        :param output_file: 
         :param filename:
         :return:
         """
         assert os.path.isfile(filename)
-        last_block = self.init_vector
+        pool = mp.Pool(mp.cpu_count())
+        results = [pool.map(self.encrypt_block,
+                            [block for block in blocks_of_file(filename)])
+                   ]
+        pool.close()
+        assert len(results) == 1
         with open(output_file, "wb") as fout:
-            for block in blocks_of_file(filename):
-                # cbc (comment out for ecb)
-                block = np.bitwise_xor(block, last_block)
-                last_block = encrypt(block, self.expanded_key)
-                fout.write(block_to_byte(last_block))
+            for block in results[0]:
+                fout.write(block_to_byte(block))
 
     def decrypt(self, filename: str, output_file: str):
         """
@@ -162,8 +153,6 @@ class AESBytes(AESInterface):
             _buffer = None
             for block in blocks_of_file(filename):
                 dec_block = decrypt(block, self.expanded_key)
-                # cbc (comment out for ecb)
-                dec_block = np.bitwise_xor(last_block, dec_block)
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
@@ -208,45 +197,71 @@ class AESStringCTR(AESInterface):
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[: self.block_size // 2] = nonce
 
-    def encrypt(self, text: str) -> str:
-        blocks = blocks_of_string(text, block_size=self.block_size)
-        for i, block in enumerate(blocks):
-            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
-            enc_nonce = hex_string(enc_nonce)
-            enc_block = [
-                a ^ b
-                for (a, b) in zip(
-                    bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
-                )
-            ]
-            yield block_to_byte(enc_block)
+    def encrypt_block(self, i, block):
+        enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+        enc_nonce = hex_string(enc_nonce)
+        enc_block = [
+            a ^ b
+            for (a, b) in zip(
+                bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
+            )
+        ]
+        return block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: List[str]) -> str:
+    def encrypt(self, text: str) -> List[bytes]:
+        pool = mp.Pool(mp.cpu_count())
+        blocks = ((i, block)
+                  for i, block in enumerate(blocks_of_string(text,
+                                                             block_size=self.block_size)))
+        results = [pool.apply(self.encrypt_block,
+                              args=block) for block in blocks]
+        pool.close()
+        return results
+
+    def decrypt_block(self, i, block):
+        dec_nonce = encrypt(self.nonce(i), self.expanded_key)
+        dec_nonce = hex_string(dec_nonce)
+        dec_text = [
+            a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
+        ]
+        # remove dangling elements.
+        if 0 in dec_text:
+            dec_text = list(filter(None, dec_text))
+        return bytes(dec_text).decode()
+
+    def decrypt(self, text_blocks: List[bytes]) -> List[str]:
         """
         :param text_blocks: encrypted
         :return:
         """
         # b''.join(b)
         # slicing possible
-        for i, block in enumerate(text_blocks):
-            dec_nonce = encrypt(self.nonce(i), self.expanded_key)
-            dec_nonce = hex_string(dec_nonce)
-            dec_text = [
-                a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
-            ]
-            # remove dangling elements.
-            if 0 in dec_text:
-                dec_text = list(filter(None, dec_text))
-            yield bytes(dec_text).decode()
+        pool = mp.Pool(mp.cpu_count())
+        blocks = ((i, block) for i, block in enumerate(text_blocks))
+        results = [pool.apply(self.decrypt_block,
+                              args=block) for block in blocks]
+        pool.close()
+        return results
 
 
 if __name__ == '__main__':
+    # my_aes = AESStringCTR()
+    # my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    # my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
+    # my_aes.set_nonce(\
+    #     "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    # )
+    # test_string = "123456sehr gut."
+    # enc = my_aes.encrypt(test_string)
+    # dec = "".join(s for s in my_aes.decrypt(enc))
+    # print(dec)
 
-    my_aes = AESBytes()
+
+    my_aes = AESBytesECB()
     filename = "../res/test.jpg"
     output_file = "../res/test.enc.jpg"
     dec_file = "../res/test.dec.jpg"
     import time
-    start = time.time()
     my_aes.encrypt(filename=filename, output_file=output_file)
-    print(time.time()- start)
+    my_aes.decrypt(filename=output_file, output_file=dec_file)
+    print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
