@@ -124,9 +124,9 @@ class AESString(AESInterface):
 class AESBytes(AESInterface):
     """
     >>> my_aes = AESBytes()
-    >>> filename = "res/test.jpg"
-    >>> output_file = "res/test.enc.jpg"
-    >>> dec_file = "res/test.dec.jpg"
+    >>> filename = "res/test.png"
+    >>> output_file = "res/test.enc.png"
+    >>> dec_file = "res/test.dec.png"
     >>> my_aes.encrypt(filename=filename, output_file=output_file)
     >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
     >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
@@ -173,20 +173,12 @@ class AESBytes(AESInterface):
             fout.write(block_to_byte(_buffer))
 
 
-class AESStringCTR(AESInterface):
-    """
-    >>> my_aes = AESStringCTR()
-    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    >>> my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
-    >>> my_aes.set_nonce(\
-        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
-    )
-    >>> test_string = "123456sehr gut."
-    >>> enc = my_aes.encrypt(test_string)
-    >>> dec = "".join(s for s in my_aes.decrypt(enc))
-    >>> print(dec) # doctest: +NORMALIZE_WHITESPACE
-        123456sehr gut.
-    """
+class AESCTR(AESInterface):
+    def encrypt(self, *args, **kwargs):
+        pass
+
+    def decrypt(self, *args, **kwargs):
+        pass
 
     def __init__(self, block_size: int = 16):
         super().__init__()
@@ -208,6 +200,25 @@ class AESStringCTR(AESInterface):
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[: self.block_size // 2] = nonce
 
+
+class AESStringCTR(AESCTR):
+    """
+    >>> my_aes = AESStringCTR()
+    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    >>> my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
+    >>> my_aes.set_nonce(\
+        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    )
+    >>> test_string = "123456sehr gut."
+    >>> enc = my_aes.encrypt(test_string)
+    >>> dec = "".join(s for s in my_aes.decrypt(enc))
+    >>> print(dec) # doctest: +NORMALIZE_WHITESPACE
+        123456sehr gut.
+    """
+
+    def __init__(self, block_size: int = 16):
+        super().__init__(block_size)
+
     def encrypt(self, text: str) -> str:
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
@@ -226,7 +237,7 @@ class AESStringCTR(AESInterface):
         :param text_blocks: encrypted
         :return:
         """
-        # b''.join(b)
+        # b''.join(b) #todo
         # slicing possible
         for i, block in enumerate(text_blocks):
             dec_nonce = encrypt(self.nonce(i), self.expanded_key)
@@ -240,3 +251,57 @@ class AESStringCTR(AESInterface):
             yield bytes(dec_text).decode()
 
 
+class AESBytesCTR(AESCTR):
+    """
+    >>> my_aes = AESBytesCTR()
+    >>> filename = "res/test.png"
+    >>> output_file = "res/test.enc.png"
+    >>> dec_file = "res/test.dec.png"
+    >>> my_aes.encrypt(filename=filename, output_file=output_file)
+    >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
+    >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
+    True
+    """
+
+    def __init__(self, block_size: int = 16):
+        super().__init__(block_size)
+
+    def decrypt(self, filename: str, output_file: str):
+        with open(output_file, 'wb') as fout:
+            _buffer = None
+            for i, block in enumerate(blocks_of_file(filename)):
+                dec_nonce = encrypt(self.nonce(i), self.expanded_key)
+                dec_block = [
+                    a ^ b for (a, b) in zip(block, cycle(dec_nonce))
+                ]
+                # remove dangling elements.
+                if _buffer is not None:
+                    fout.write(block_to_byte(_buffer))
+                _buffer = dec_block
+            # last block: remove all dangling elements.
+            _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
+            fout.write(block_to_byte(_buffer))
+
+    def encrypt(self, filename: str, output_file: str):
+        assert os.path.isfile(filename)
+        with open(output_file, "wb") as fout:
+            for i, block in enumerate(blocks_of_file(filename)):
+                enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+                enc_block = [
+                    a ^ b
+                    for (a, b) in zip(
+                        block, cycle(enc_nonce)
+                    )
+                ]
+                fout.write(block_to_byte(enc_block))
+
+
+if __name__ == '__main__':
+    my_aes = AESBytesCTR()
+    filename = "../res/test.png"
+    output_file = "../res/test.enc.png"
+    dec_file = "../res/test.dec.png"
+    my_aes.encrypt(filename=filename, output_file=output_file)
+    print('moin')
+    my_aes.decrypt(output_file, dec_file)
+    print('fetsch')
