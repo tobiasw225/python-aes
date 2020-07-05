@@ -1,4 +1,5 @@
 from itertools import cycle
+import filecmp
 
 from python_aes.helper import hex_string
 from python_aes.aes256 import encrypt
@@ -62,5 +63,10 @@ def test_enc_dec_full(random_wiki_articles):
         assert block == bytes(dec_text).decode()
 
 
-def test_bytes_full():
-    AESBytesCTR
+def test_bytes_full(original_byte_file,
+                    dec_byte_file,
+                    enc_byte_file):
+    my_aes = AESBytesCTR()
+    my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
+    my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
+    assert filecmp.cmp(original_byte_file, dec_byte_file) is True

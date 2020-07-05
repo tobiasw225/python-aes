@@ -15,17 +15,17 @@ def test_string():
 
 @pytest.fixture(scope="module")
 def original_byte_file():
-    return os.path.join(folder, "test.jpg")
+    return os.path.join(folder, "test.png")
 
 
 @pytest.fixture(scope="module")
 def dec_byte_file():
-    return os.path.join(folder, "test.dec.jpg")
+    return os.path.join(folder, "test.dec.png")
 
 
 @pytest.fixture(scope="module")
 def enc_byte_file():
-    return os.path.join(folder, "test.enc.jpg")
+    return os.path.join(folder, "test.enc.png")
 
 
 @pytest.fixture(scope="module")
