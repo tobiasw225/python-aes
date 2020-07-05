@@ -12,100 +12,62 @@
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
 
-import numpy as np
+import functools
+from typing import Generator
+import multiprocessing as mp
+import operator
 import os
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from itertools import cycle
-from typing import List
 from pathlib import Path
+from typing import List
+
+import numpy as np
+
 from python_aes.aes256 import decrypt, encrypt
-from python_aes.helper import (chunks, get_key, hex_string, process_block,
+from python_aes.aes_interface import AESInterface
+from python_aes.helper import chunks
+from python_aes.helper import (hex_string, process_block,
                                sample_nonce)
-from python_aes.key_manager import expand_key
 from python_aes.process_bytes import (block_to_byte, blocks_of_file,
                                       blocks_of_string)
-from python_aes.text_encoding import chr_decode, string_to_blocks
-import multiprocessing as mp
 
 
-class AESInterface(ABC):
+class AESInterfaceMultiproc(AESInterface):
     """
         Interface for AES implementations Text & Byte
     """
 
     def __init__(self):
-        self.expanded_key = None
-        self.key = None
-        self.set_key(key="/home/tobias/mygits/python-aes/keys/gKey")
-        self._init_vector = np.random.randint(0, 255, 16)
-
-    @property
-    def init_vector(self):
-        return self._init_vector
-
-    @init_vector.setter
-    def init_vector(self, key: str):
-        self._init_vector = get_key(key)
-
-    def set_key(self, key: str = "../keys/gKey"):
-        """
-            The key can be either a file (plain-text hex-digits)
-            or passed as string.
-
-        :param key
-        :return:
-        """
-        self.key = get_key(key)
-        self.expanded_key = expand_key(self.key)
-
-    @abstractmethod
-    def encrypt(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def decrypt(self, *args, **kwargs):
-        pass
-
-
-class AESString(AESInterface):
-    """
-    >>> my_aes = AESString()
-    >>> enc = "".join(s for s in my_aes.encrypt('test string'))
-    >>> dec_string = "".join(s for s in my_aes.decrypt(enc)).rstrip()
-    >>> print(dec_string)
-    test string
-    """
-
-    def __init__(self):
         super().__init__()
+        self.num_pools = mp.cpu_count()
 
-    def encrypt(self, text: str) -> str:
-        """
-        :param text:
-        :return:
-        """
-        last_block = self.init_vector
-        blocks = string_to_blocks(text, block_size=16)
-        for block in blocks:
-            block = np.bitwise_xor(block, last_block)
-            last_block = encrypt(block, self.expanded_key)
-            yield hex_string(last_block)
+    @abstractmethod
+    def encrypt_batch(self, batch: List[List]) -> List:
+        pass
 
-    def decrypt(self, text: str) -> str:
-        """
-        :param text: encrypted
-        :return:
-        """
-        last_block = self.init_vector
-        blocks = process_block(text)
-        for block in chunks(blocks):
-            dec_block = decrypt(block, self.expanded_key)
-            last_block = np.bitwise_xor(last_block, dec_block)
-            yield "".join([chr_decode(c) for c in last_block])
-            last_block = block
+    @abstractmethod
+    def decrypt_batch(self, batch: List[List]) -> List:
+        pass
+
+    def start_batch_process(self, func: callable,
+                            blocks: Generator) -> List:
+        pool = mp.Pool(self.num_pools)
+        blocks = list(blocks)
+        batches = (batch for batch in chunks(blocks, n=len(blocks)//self.num_pools))
+        results = [pool.map(func,
+                            (batch for batch in batches))]
+        pool.close()
+        return functools.reduce(operator.iconcat, results[0], [])
+
+    def encryption_processes(self, blocks: Generator) -> List:
+        return self.start_batch_process(self.encrypt_batch, blocks)
+
+    def decryption_processes(self, blocks: Generator) -> List:
+        return self.start_batch_process(self.decrypt_batch, blocks)
 
 
-class AESBytesECB(AESInterface):
+class AESBytesECB(AESInterfaceMultiproc):
     """
     >>> my_aes = AESBytesECB()
     >>> filename = "res/test.jpg"
@@ -117,52 +79,35 @@ class AESBytesECB(AESInterface):
     True
 
     """
-    
-    def encrypt_block(self, block):
-        return encrypt(block, self.expanded_key)
-        
-    def encrypt(self, filename: str, output_file: str):
-        """
-            encrypts file block by block
-            and returns the encrypted byte-string.
+    def encrypt_batch(self, batch: List[np.ndarray]) -> List:
+        return [block_to_byte(encrypt(block, self.expanded_key))
+                for block in batch]
 
-        :param output_file: 
-        :param filename:
-        :return:
-        """
+    def encrypt(self, filename: str, output_file: str):
         assert os.path.isfile(filename)
-        pool = mp.Pool(mp.cpu_count())
-        results = [pool.map(self.encrypt_block,
-                            [block for block in blocks_of_file(filename)])
-                   ]
-        pool.close()
-        assert len(results) == 1
+        blocks = (block for block in blocks_of_file(filename))
         with open(output_file, "wb") as fout:
-            for block in results[0]:
-                fout.write(block_to_byte(block))
+            for block in self.encryption_processes(blocks):
+                fout.write(block)
+
+    def decrypt_batch(self, batch: List[np.ndarray]) -> List:
+        return [block_to_byte(decrypt(block, self.expanded_key))
+                for block in batch]
 
     def decrypt(self, filename: str, output_file: str):
-        """
-
-        :param filename:
-        :param output_file:
-        :return:
-        """
-        last_block = self.init_vector
         with open(output_file, "wb") as fout:
             _buffer = None
-            for block in blocks_of_file(filename):
-                dec_block = decrypt(block, self.expanded_key)
-                if _buffer is not None:
-                    fout.write(block_to_byte(_buffer))
+            blocks = (block for block in blocks_of_file(filename))
+            for dec_block in self.decryption_processes(blocks):
+                if _buffer:
+                    fout.write(_buffer)
                 _buffer = dec_block
-                last_block = block
             # last block: remove all dangling elements.
-            _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
-            fout.write(block_to_byte(_buffer))
+            _buffer = block_to_byte(np.array(list(filter(lambda x: x != 0, _buffer))))
+            fout.write(_buffer)
 
 
-class AESStringCTR(AESInterface):
+class AESStringCTR(AESInterfaceMultiproc):
     """
     >>> my_aes = AESStringCTR()
     >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
@@ -197,37 +142,39 @@ class AESStringCTR(AESInterface):
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[: self.block_size // 2] = nonce
 
-    def encrypt_block(self, i, block):
-        enc_nonce = encrypt(self.nonce(i), self.expanded_key)
-        enc_nonce = hex_string(enc_nonce)
-        enc_block = [
-            a ^ b
-            for (a, b) in zip(
-                bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
-            )
-        ]
-        return block_to_byte(enc_block)
+    def encrypt_batch(self, batch):
+        encrypted = []
+        for i, block in batch:
+            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+            enc_nonce = hex_string(enc_nonce)
+            enc_block = [
+                a ^ b
+                for (a, b) in zip(
+                    bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
+                )
+            ]
+            encrypted.append(block_to_byte(enc_block))
+        return encrypted
 
     def encrypt(self, text: str) -> List[bytes]:
-        pool = mp.Pool(mp.cpu_count())
         blocks = ((i, block)
                   for i, block in enumerate(blocks_of_string(text,
                                                              block_size=self.block_size)))
-        results = [pool.apply(self.encrypt_block,
-                              args=block) for block in blocks]
-        pool.close()
-        return results
+        return self.encryption_processes(blocks)
 
-    def decrypt_block(self, i, block):
-        dec_nonce = encrypt(self.nonce(i), self.expanded_key)
-        dec_nonce = hex_string(dec_nonce)
-        dec_text = [
-            a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
-        ]
-        # remove dangling elements.
-        if 0 in dec_text:
-            dec_text = list(filter(None, dec_text))
-        return bytes(dec_text).decode()
+    def decrypt_batch(self, batch):
+        decrypted = []
+        for i, block in batch:
+            dec_nonce = encrypt(self.nonce(i), self.expanded_key)
+            dec_nonce = hex_string(dec_nonce)
+            dec_text = [
+                a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
+            ]
+            # remove dangling elements.
+            if 0 in dec_text:
+                dec_text = list(filter(None, dec_text))
+            decrypted.append(bytes(dec_text).decode())
+        return decrypted
 
     def decrypt(self, text_blocks: List[bytes]) -> List[str]:
         """
@@ -236,24 +183,29 @@ class AESStringCTR(AESInterface):
         """
         # b''.join(b)
         # slicing possible
-        pool = mp.Pool(mp.cpu_count())
         blocks = ((i, block) for i, block in enumerate(text_blocks))
-        results = [pool.apply(self.decrypt_block,
-                              args=block) for block in blocks]
-        pool.close()
-        return results
+        return self.decryption_processes(blocks)
+
 
 
 if __name__ == '__main__':
-    # my_aes = AESStringCTR()
-    # my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    # my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
-    # my_aes.set_nonce(\
-    #     "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
-    # )
-    # test_string = "123456sehr gut."
+    my_aes = AESStringCTR()
+    my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
+    my_aes.set_nonce(\
+        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    )
+    # 114.81927061080933s: "123456sehr gut."*100000
+    # -> 1.9 min
+    # test_string = "123456sehr gut."*100
+    # import time
+    # start = time.time()
     # enc = my_aes.encrypt(test_string)
-    # dec = "".join(s for s in my_aes.decrypt(enc))
+    # print(time.time()-start)
+    # start = time.time()
+    # dec_result = my_aes.decrypt(enc)
+    # print(time.time() - start)
+    # dec = "".join(s for s in dec_result)
     # print(dec)
 
 
@@ -262,6 +214,14 @@ if __name__ == '__main__':
     output_file = "../res/test.enc.jpg"
     dec_file = "../res/test.dec.jpg"
     import time
+    start = time.time()
     my_aes.encrypt(filename=filename, output_file=output_file)
+    print(time.time()- start)
+    start = time.time()
     my_aes.decrypt(filename=output_file, output_file=dec_file)
+    print(time.time()- start)
     print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
+
+    # done refactor batches
+    # todo string pools
+    # todo bytes cbc

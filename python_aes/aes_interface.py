@@ -242,11 +242,33 @@ class AESStringCTR(AESInterface):
 
 if __name__ == '__main__':
 
-    my_aes = AESBytes()
-    filename = "../res/test.jpg"
-    output_file = "../res/test.enc.jpg"
-    dec_file = "../res/test.dec.jpg"
+    # my_aes = AESBytes()
+    # filename = "../res/test.jpg"
+    # output_file = "../res/test.enc.jpg"
+    # dec_file = "../res/test.dec.jpg"
+    # import time
+    # start = time.time()
+    # my_aes.encrypt(filename=filename, output_file=output_file)
+    # print(time.time()- start)
+    # start = time.time()
+    # my_aes.decrypt(filename=output_file, output_file=dec_file)
+    # print(time.time()- start)
+
+    my_aes = AESStringCTR()
+    my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
+    my_aes.set_nonce(\
+        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    )
+    # 224.1409227848053s: "123456sehr gut."*100000
+    # -> 3.73 min
+    test_string = "123456sehr gut."*100000
     import time
     start = time.time()
-    my_aes.encrypt(filename=filename, output_file=output_file)
-    print(time.time()- start)
+    enc = list(my_aes.encrypt(test_string))
+    print(time.time()-start)
+    start = time.time()
+    dec_result = list(my_aes.decrypt(enc))
+    dec = "".join(s for s in dec_result)
+    print(time.time() - start)
+
