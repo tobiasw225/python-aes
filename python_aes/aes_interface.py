@@ -20,7 +20,7 @@ from typing import List
 from pathlib import Path
 from python_aes.aes256 import decrypt, encrypt
 from python_aes.helper import (chunks, get_key, hex_string, process_block,
-                               sample_nonce)
+                               sample_nonce, rstrip)
 from python_aes.key_manager import expand_key
 from python_aes.process_bytes import (block_to_byte, blocks_of_file,
                                       blocks_of_string)
@@ -168,8 +168,8 @@ class AESBytes(AESInterface):
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
                 last_block = block
-            # last block: remove all dangling elements.
-            _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
+            # last block: remove all trailing elements.
+            _buffer = rstrip(_buffer.tolist(), 0)
             fout.write(block_to_byte(_buffer))
 
 
@@ -205,7 +205,6 @@ class AESStringCTR(AESCTR):
     """
     >>> my_aes = AESStringCTR()
     >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    >>> my_aes.init_vector = "7950b9c141ad3d6805dea8585bc71b4b"
     >>> my_aes.set_nonce(\
         "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
     )
@@ -257,6 +256,10 @@ class AESBytesCTR(AESCTR):
     >>> filename = "res/test.png"
     >>> output_file = "res/test.enc.png"
     >>> dec_file = "res/test.dec.png"
+    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
+    >>> my_aes.set_nonce(\
+        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
+    )
     >>> my_aes.encrypt(filename=filename, output_file=output_file)
     >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
     >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
@@ -278,8 +281,8 @@ class AESBytesCTR(AESCTR):
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
-            # last block: remove all dangling elements.
-            _buffer = np.array(list(filter(lambda x: x != 0, _buffer)))
+            # remove trailing zeros
+            _buffer = rstrip(_buffer, 0)
             fout.write(block_to_byte(_buffer))
 
     def encrypt(self, filename: str, output_file: str):
@@ -294,14 +297,3 @@ class AESBytesCTR(AESCTR):
                     )
                 ]
                 fout.write(block_to_byte(enc_block))
-
-
-if __name__ == '__main__':
-    my_aes = AESBytesCTR()
-    filename = "../res/test.png"
-    output_file = "../res/test.enc.png"
-    dec_file = "../res/test.dec.png"
-    my_aes.encrypt(filename=filename, output_file=output_file)
-    print('moin')
-    my_aes.decrypt(output_file, dec_file)
-    print('fetsch')

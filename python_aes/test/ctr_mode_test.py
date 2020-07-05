@@ -2,7 +2,7 @@ from itertools import cycle
 
 from python_aes.helper import hex_string
 from python_aes.aes256 import encrypt
-from python_aes.aes_interface import AESStringCTR
+from python_aes.aes_interface import AESStringCTR, AESBytesCTR
 from python_aes.text_encoding import text_blocks
 
 
@@ -60,3 +60,7 @@ def test_enc_dec_full(random_wiki_articles):
                                     cycle(bytes(enc_nonce, "utf-8")))
         ]
         assert block == bytes(dec_text).decode()
+
+
+def test_bytes_full():
+    AESBytesCTR

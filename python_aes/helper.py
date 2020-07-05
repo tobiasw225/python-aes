@@ -88,3 +88,9 @@ def sample_nonce(block_size):
     _nonce[: block_size // 2] = generate_nonce(d_type="int",
                                                block_size=block_size // 2)
     return _nonce
+
+
+def rstrip(l: list, value):
+    while l[-1] == value:
+        l.pop(-1)
+    return l
