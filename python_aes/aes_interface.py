@@ -174,6 +174,7 @@ class AESBytes(AESInterface):
 
 
 class AESCTR(AESInterface):
+
     def encrypt(self, *args, **kwargs):
         pass
 
@@ -205,9 +206,7 @@ class AESStringCTR(AESCTR):
     """
     >>> my_aes = AESStringCTR()
     >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    >>> my_aes.set_nonce(\
-        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
-    )
+    >>> my_aes.set_nonce("b2e47dd87113a992")
     >>> test_string = "123456sehr gut."
     >>> enc = my_aes.encrypt(test_string)
     >>> dec = "".join(s for s in my_aes.decrypt(enc))

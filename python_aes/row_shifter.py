@@ -16,7 +16,17 @@ import numpy as np
 
 def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
     """
-    @todo doc
+    >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
+     136, 153, 170, 187, 204, 221, 238, 255])
+     >>> shift_block(block)
+         array([  0,  85, 170, 255,  68, 153, 238,  51, 136, 221,  34, 119, 204,
+            17, 102, 187])
+    >>> shift_block(block, invert=True)
+        array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204,
+               221, 238, 255])
+
+    >>> all(shift_block(block, invert=True) == block)
+        This stinks.
 
     :param block:
     :param invert:

@@ -52,7 +52,6 @@ def test_enc_dec_full(random_wiki_articles):
             for (a, b) in zip(bytes(block, "utf-8"),
                               cycle(bytes(enc_nonce, "utf-8")))
         ]
-
         dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
         dec_nonce = hex_string(dec_nonce)
         assert enc_nonce == dec_nonce

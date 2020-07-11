@@ -45,15 +45,20 @@ def mix_column_inv(col: list) -> np.ndarray:
 
 
 # this matrix makes looping way easier.
-four_by_four_mat = np.arange(16).reshape((4, 4))
+four_by_four_mat = np.array([[ 0,  1,  2,  3],
+       [ 4,  5,  6,  7],
+       [ 8,  9, 10, 11],
+       [12, 13, 14, 15]])
 
 
 def mix_columns(block: np.ndarray) -> np.ndarray:
     """
-    @todo doc
+    >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
+     136, 153, 170, 187, 204, 221, 238, 255])
+    >>> mix_columns(block)
+    array([ 34, 119,   0,  85, 102,  51,  68,  17, 170, 255, 136, 221, 238,
+           187, 204, 153])
 
-    :param block:
-    :return:
     """
     return np.array(
         [mix_column(block[row]) for row in four_by_four_mat], dtype=int
@@ -62,10 +67,14 @@ def mix_columns(block: np.ndarray) -> np.ndarray:
 
 def mix_columns_inv(block: np.ndarray) -> np.ndarray:
     """
-    @todo doc
+    >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
+     136, 153, 170, 187, 204, 221, 238, 255])
+    >>> mix_columns_inv(block)
+    array([170, 255, 136, 221, 238, 187, 204, 153,  34, 119,   0,  85, 102,
+            51,  68,  17])
+    >>> all(mix_columns_inv(mix_columns(block)) == block)
+    True
 
-    :param block:
-    :return:
     """
     return np.array(
         [mix_column_inv(block[row]) for row in four_by_four_mat], dtype=int

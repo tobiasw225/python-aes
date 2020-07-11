@@ -83,7 +83,7 @@ def xor(data, key):
                                     cycle(bytes(key, "utf-8")))]
 
 
-def sample_nonce(block_size):
+def sample_nonce(block_size: int):
     _nonce = np.zeros(block_size, dtype=int)
     _nonce[: block_size // 2] = generate_nonce(d_type="int",
                                                block_size=block_size // 2)
