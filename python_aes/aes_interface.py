@@ -19,11 +19,16 @@ from itertools import cycle
 from typing import List
 from pathlib import Path
 from python_aes.aes256 import decrypt, encrypt
-from python_aes.helper import (chunks, get_key, hex_string, process_block,
-                               sample_nonce, rstrip)
+from python_aes.helper import (
+    chunks,
+    get_key,
+    hex_string,
+    process_block,
+    sample_nonce,
+    rstrip,
+)
 from python_aes.key_manager import expand_key
-from python_aes.process_bytes import (block_to_byte, blocks_of_file,
-                                      blocks_of_string)
+from python_aes.process_bytes import block_to_byte, blocks_of_file, blocks_of_string
 from python_aes.text_encoding import chr_decode, string_to_blocks
 
 
@@ -133,6 +138,7 @@ class AESBytes(AESInterface):
     True
 
     """
+
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
@@ -174,7 +180,6 @@ class AESBytes(AESInterface):
 
 
 class AESCTR(AESInterface):
-
     def encrypt(self, *args, **kwargs):
         pass
 
@@ -192,7 +197,7 @@ class AESCTR(AESInterface):
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
         _nonce = self._nonce
-        _nonce[self.block_size // 2:] = [ord(i) for i in ctr]
+        _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
         return _nonce
 
     def set_nonce(self, nonce: str):
@@ -269,13 +274,11 @@ class AESBytesCTR(AESCTR):
         super().__init__(block_size)
 
     def decrypt(self, filename: str, output_file: str):
-        with open(output_file, 'wb') as fout:
+        with open(output_file, "wb") as fout:
             _buffer = None
             for i, block in enumerate(blocks_of_file(filename)):
                 dec_nonce = encrypt(self.nonce(i), self.expanded_key)
-                dec_block = [
-                    a ^ b for (a, b) in zip(block, cycle(dec_nonce))
-                ]
+                dec_block = [a ^ b for (a, b) in zip(block, cycle(dec_nonce))]
                 # remove dangling elements.
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
@@ -289,10 +292,5 @@ class AESBytesCTR(AESCTR):
         with open(output_file, "wb") as fout:
             for i, block in enumerate(blocks_of_file(filename)):
                 enc_nonce = encrypt(self.nonce(i), self.expanded_key)
-                enc_block = [
-                    a ^ b
-                    for (a, b) in zip(
-                        block, cycle(enc_nonce)
-                    )
-                ]
+                enc_block = [a ^ b for (a, b) in zip(block, cycle(enc_nonce))]
                 fout.write(block_to_byte(enc_block))

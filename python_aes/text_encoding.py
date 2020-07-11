@@ -43,7 +43,7 @@ def text_blocks(text: str, block_size: int):
     """
     i = 0
     while i < len(text):
-        yield "".join(text[i: i + block_size])
+        yield "".join(text[i : i + block_size])
         i += block_size
 
 
@@ -97,7 +97,7 @@ def decode_block(block: list, encoding: str = "utf-8"):
     :return:
     """
     step = 4 if encoding == "utf-16" else 2
-    b_block = [bytes(block[i: i + step]) for i in range(0, 16, step)]
+    b_block = [bytes(block[i : i + step]) for i in range(0, 16, step)]
     signs = []
     for sign in b_block:
         # For some reason, I get extra \x00 signs,

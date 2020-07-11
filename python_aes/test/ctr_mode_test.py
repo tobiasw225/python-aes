@@ -13,11 +13,9 @@ def test_xor(test_string):
     nonce = hex_string(nonce)
     enc_text = [
         a ^ b
-        for (a, b) in zip(bytes(test_string, "utf-8"),
-                          cycle(bytes(nonce, "utf-8")))
+        for (a, b) in zip(bytes(test_string, "utf-8"), cycle(bytes(nonce, "utf-8")))
     ]
-    dec_text = [a ^ b for (a, b) in zip(bytes(enc_text),
-                                        cycle(bytes(nonce, "utf-8")))]
+    dec_text = [a ^ b for (a, b) in zip(bytes(enc_text), cycle(bytes(nonce, "utf-8")))]
     assert test_string == bytes(dec_text).decode()
 
 
@@ -27,15 +25,13 @@ def test_enc_dec_step(test_string):
     enc_nonce = hex_string(enc_nonce)
     enc_block = [
         a ^ b
-        for (a, b) in zip(bytes(test_string, "utf-8"),
-                          cycle(bytes(enc_nonce, "utf-8")))
+        for (a, b) in zip(bytes(test_string, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
     ]
     dec_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
     dec_nonce = hex_string(dec_nonce)
     assert enc_nonce == dec_nonce
     dec_text = [
-        a ^ b for (a, b) in zip(bytes(enc_block),
-                                cycle(bytes(enc_nonce, "utf-8")))
+        a ^ b for (a, b) in zip(bytes(enc_block), cycle(bytes(enc_nonce, "utf-8")))
     ]
     assert test_string == bytes(dec_text).decode()
 
@@ -49,22 +45,18 @@ def test_enc_dec_full(random_wiki_articles):
         enc_nonce = hex_string(enc_nonce)
         enc_block = [
             a ^ b
-            for (a, b) in zip(bytes(block, "utf-8"),
-                              cycle(bytes(enc_nonce, "utf-8")))
+            for (a, b) in zip(bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
         ]
         dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
         dec_nonce = hex_string(dec_nonce)
         assert enc_nonce == dec_nonce
         dec_text = [
-            a ^ b for (a, b) in zip(bytes(enc_block),
-                                    cycle(bytes(enc_nonce, "utf-8")))
+            a ^ b for (a, b) in zip(bytes(enc_block), cycle(bytes(enc_nonce, "utf-8")))
         ]
         assert block == bytes(dec_text).decode()
 
 
-def test_bytes_full(original_byte_file,
-                    dec_byte_file,
-                    enc_byte_file):
+def test_bytes_full(original_byte_file, dec_byte_file, enc_byte_file):
     my_aes = AESBytesCTR()
     my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
     my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)

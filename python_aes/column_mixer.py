@@ -18,37 +18,28 @@ import numpy as np
 from python_aes.mix_col_tables import *
 
 
-def mix_column(col: list) -> np.ndarray:
-    """
-
-    :param col:
-    :return:
-    """
-    b0 = m2[col[0]] ^ m3[col[1]] ^ col[2] ^ col[3]
-    b1 = col[0] ^ m2[col[1]] ^ m3[col[2]] ^ col[3]
-    b2 = col[0] ^ col[1] ^ m2[col[2]] ^ m3[col[3]]
-    b3 = m3[col[0]] ^ col[1] ^ col[2] ^ m2[col[3]]
-    return np.array([b0, b1, b2, b3], dtype=int)
+def mix_column(col: list) -> list:
+    return [
+        m2[col[0]] ^ m3[col[1]] ^ col[2] ^ col[3],
+        col[0] ^ m2[col[1]] ^ m3[col[2]] ^ col[3],
+        col[0] ^ col[1] ^ m2[col[2]] ^ m3[col[3]],
+        m3[col[0]] ^ col[1] ^ col[2] ^ m2[col[3]],
+    ]
 
 
-def mix_column_inv(col: list) -> np.ndarray:
-    """
-
-    :param col:
-    :return:
-    """
-    r0 = m14[col[0]] ^ m11[col[1]] ^ m13[col[2]] ^ m9[col[3]]
-    r1 = m9[col[0]] ^ m14[col[1]] ^ m11[col[2]] ^ m13[col[3]]
-    r2 = m13[col[0]] ^ m9[col[1]] ^ m14[col[2]] ^ m11[col[3]]
-    r3 = m11[col[0]] ^ m13[col[1]] ^ m9[col[2]] ^ m14[col[3]]
-    return np.array([r0, r1, r2, r3], dtype=int)
+def mix_column_inv(col: list) -> list:
+    return [
+        m14[col[0]] ^ m11[col[1]] ^ m13[col[2]] ^ m9[col[3]],
+        m9[col[0]] ^ m14[col[1]] ^ m11[col[2]] ^ m13[col[3]],
+        m13[col[0]] ^ m9[col[1]] ^ m14[col[2]] ^ m11[col[3]],
+        m11[col[0]] ^ m13[col[1]] ^ m9[col[2]] ^ m14[col[3]],
+    ]
 
 
 # this matrix makes looping way easier.
-four_by_four_mat = np.array([[ 0,  1,  2,  3],
-       [ 4,  5,  6,  7],
-       [ 8,  9, 10, 11],
-       [12, 13, 14, 15]])
+four_by_four_mat = np.array(
+    [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
+)
 
 
 def mix_columns(block: np.ndarray) -> np.ndarray:

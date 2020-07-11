@@ -18,12 +18,12 @@ def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
     """
     >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
      136, 153, 170, 187, 204, 221, 238, 255])
-     >>> shift_block(block)
-         array([  0,  85, 170, 255,  68, 153, 238,  51, 136, 221,  34, 119, 204,
-            17, 102, 187])
-    >>> shift_block(block, invert=True)
-        array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204,
-               221, 238, 255])
+     >>> shift_block(block)  # doctest: +NORMALIZE_WHITESPACE
+     array([  0,  85, 170, 255,  68, 153, 238,  51, 136, 221,  34, 119, 204,
+        17, 102, 187])
+    >>> shift_block(block, invert=True) # doctest: +NORMALIZE_WHITESPACE
+    array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204,
+           221, 238, 255])
 
     >>> all(shift_block(block, invert=True) == block)
         This stinks.
@@ -37,7 +37,6 @@ def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
 
     # Loop for Iteration of each row (2nd, 3rd, 4th)
     for row in range(1, 4):
-
         for i in range(row):
             # Get the elements of the row
             i = row
@@ -59,9 +58,7 @@ def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
                 # Every index is added by 4 to get the new one
                 new_indices = indices + 4
                 new_indices[new_indices > 16] -= 16
-
             # Assigning of the values of the row to the original array
             for z, digit in zip(new_indices, temp_arr):
                 block[z] = digit
-
     return np.array(block)

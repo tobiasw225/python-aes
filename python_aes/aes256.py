@@ -10,7 +10,6 @@
 import numpy as np
 from python_aes.add_round_key import add_roundkey
 from python_aes.column_mixer import mix_columns_inv, mix_columns
-from python_aes.key_manager import create_round_key
 from python_aes.row_shifter import shift_block
 from python_aes.sbox import sbox, sbox_inv
 
@@ -33,7 +32,7 @@ def encrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
     :return: encrypted array
     """
     for i in range(15):
-        ri = create_round_key(expanded_key, i)
+        ri = expanded_key[i : i + 16]
         if i != 0:
             block = sbox[block]
             block = shift_block(block)
@@ -61,7 +60,7 @@ def decrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
     :return: decrypted array
     """
     for i in range(14, -1, -1):
-        ri = create_round_key(expanded_key, i)
+        ri = expanded_key[i: i + 16]
         if i == 14:
             block = add_roundkey(block, ri)
         else:

@@ -15,11 +15,5 @@ import numpy as np
 
 
 def add_roundkey(round_key: np.ndarray, block: np.ndarray) -> np.ndarray:
-    """
-
-    :param round_key:
-    :param block:
-    :return:
-    """
     assert len(block) == len(round_key)
-    return np.array([rk ^ b for rk, b in zip(round_key, block)])
+    return np.bitwise_xor(round_key, block)
