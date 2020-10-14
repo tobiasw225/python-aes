@@ -25,9 +25,6 @@ def shift_block(block: np.ndarray, invert: bool = False) -> np.ndarray:
     array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204,
            221, 238, 255])
 
-    >>> all(shift_block(block, invert=True) == block)
-        This stinks.
-
     :param block:
     :param invert:
     :return:
