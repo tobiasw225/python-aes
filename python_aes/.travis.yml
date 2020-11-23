@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.8"
+  - "nightly"
+install:
+  - "pip install pytest"
+  - "pip install requests"
+  - "pip install numpy"
+script: python -m pytest test/

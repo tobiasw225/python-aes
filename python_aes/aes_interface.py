@@ -30,6 +30,7 @@ from python_aes.helper import (
 from python_aes.key_manager import expand_key
 from python_aes.process_bytes import block_to_byte, blocks_of_file, blocks_of_string
 from python_aes.text_encoding import chr_decode, string_to_blocks
+from python_aes.test.utils import download
 
 
 class AESInterface(ABC):
@@ -40,7 +41,7 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self.set_key(key="/home/tobias/mygits/python-aes/keys/gKey")
+        self.set_key(key="keys/gKey")
         self._init_vector = np.random.randint(0, 255, 16)
 
     @property
@@ -128,12 +129,13 @@ class AESString(AESInterface):
 
 class AESBytes(AESInterface):
     """
+    >>> filename = "test.svg"
+    >>> download(url="https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download",  output_file=filename)
     >>> my_aes = AESBytes()
-    >>> filename = "res/test.png"
-    >>> output_file = "res/test.enc.png"
-    >>> dec_file = "res/test.dec.png"
-    >>> my_aes.encrypt(filename=filename, output_file=output_file)
-    >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
+    >>> enc_file = "test.enc.svg"
+    >>> dec_file = "test.dec.svg"
+    >>> my_aes.encrypt(filename=filename, output_file=enc_file)
+    >>> my_aes.decrypt(filename=enc_file, output_file=dec_file)
     >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
     True
 
@@ -257,15 +259,16 @@ class AESStringCTR(AESCTR):
 class AESBytesCTR(AESCTR):
     """
     >>> my_aes = AESBytesCTR()
-    >>> filename = "res/test.png"
-    >>> output_file = "res/test.enc.png"
-    >>> dec_file = "res/test.dec.png"
+    >>> filename = "test.svg"
+    >>> download(url="https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download",  output_file=filename)
+    >>> enc_file = "test.enc.svg"
+    >>> dec_file = "test.dec.svg"
     >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
     >>> my_aes.set_nonce(\
         "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
     )
-    >>> my_aes.encrypt(filename=filename, output_file=output_file)
-    >>> my_aes.decrypt(filename=output_file, output_file=dec_file)
+    >>> my_aes.encrypt(filename=filename, output_file=enc_file)
+    >>> my_aes.decrypt(filename=enc_file, output_file=dec_file)
     >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
     True
     """

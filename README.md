@@ -1,4 +1,8 @@
+
 # python-aes
+
+![Tests](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)
+
 
 This is my simple implementation of the AES256 algorithm. 
 I initially implemented this project originally as part of the

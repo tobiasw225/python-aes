@@ -1,11 +1,9 @@
-import os
 import pytest
-import requests
 
 from python_aes.helper import get_key
 from python_aes.helper import get_block
-
-folder = "/home/tobias/mygits/python-aes/res/"
+from python_aes.test.utils import download
+from python_aes.test.utils import get_random_wiki_articles
 
 
 @pytest.fixture(scope="module")
@@ -15,76 +13,48 @@ def test_string():
 
 @pytest.fixture(scope="module")
 def original_byte_file():
-    return os.path.join(folder, "test.png")
+    filename = "test.svg"
+    url = "https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download"
+    download(url=url, output_file=filename)
+    return filename
 
 
 @pytest.fixture(scope="module")
 def dec_byte_file():
-    return os.path.join(folder, "test.dec.png")
+    return "test.dec.svg"
 
 
 @pytest.fixture(scope="module")
 def enc_byte_file():
-    return os.path.join(folder, "test.enc.png")
+    return "test.enc.svg"
 
 
 @pytest.fixture(scope="module")
 def original_txt_file():
-    return os.path.join(folder, "test.txt")
+    filename = "test.txt"
+    url = "https://archive.org/stream/goodytwoshoes00newyiala/goodytwoshoes00newyiala_djvu.txt"
+    download(url=url, output_file=filename)
+    return filename
 
 
 @pytest.fixture(scope="module")
-def key():
-    return os.path.join(folder, "testKey")
+def original_hebrew_file():
+    filename = "test_hebrew.txt"
+    url = "http://titus.uni-frankfurt.de/unicode/alphabet/hebrtest.htm"
+    download(url=url, output_file=filename)
+    return filename
 
 
 @pytest.fixture(scope="module")
 def test_block():
-    return get_block(os.path.join(folder, "testBlock"))
+    return get_block("00112233445566778899aabbccddeeff")
 
 
 @pytest.fixture(scope="module")
 def key():
-    return get_key(os.path.join(folder, "testKey"))
+    return get_key("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
 
 
 @pytest.fixture(scope="module")
 def random_wiki_articles():
     return list(get_random_wiki_articles(3))
-
-
-def get_random_wiki_articles(n: int):
-    """
-
-    :param n:
-    :return:
-    """
-    session = requests.Session()
-    url = "https://en.wikipedia.org/w/api.php"
-    res = session.get(
-        url=url,
-        params={
-            "action": "query",
-            "format": "json",
-            "list": "random",
-            "rnlimit": f"{n}",
-        },
-    )
-    data = res.json()
-    articles = data["query"]["random"]
-    # crawl actual articles
-    res = session.get(
-        url=url,
-        params={
-            "action": "query",
-            "format": "json",
-            "prop": "extracts",
-            "exlimit": "max",
-            "explaintext": "true",
-            "titles": "|".join(r["title"] for r in articles),
-        },
-    )
-    data = res.json()
-    for article in data["query"]["pages"].values():
-        # some articles have no text.
-        yield f"{article['title']}\n{article.get('extract', '')}"

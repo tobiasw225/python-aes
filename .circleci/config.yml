@@ -1,0 +1,24 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build-and-test:
+    executor: python/default
+    steps:
+      - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
+      - run:
+          command: python -m pytest python_aes/test
+          name: Unit & Integration Tests
+      - run:
+          command: python3.9 -m doctest -v python_aes/aes_interface.py
+          name: Doc-Tests
+
+workflows:
+  main:
+    jobs:
+      - build-and-test

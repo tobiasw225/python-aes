@@ -22,9 +22,9 @@ def test_ascii_file(key, original_txt_file):
     assert np.allclose(dec_blocks, blocks) is True
 
 
-def test_utf8_file(key, original_txt_file):
+def test_utf8_file(key, original_hebrew_file):
     # list to compare afterwards @todo reset generator?
-    blocks = list(text_file_to_blocks(original_txt_file))
+    blocks = list(text_file_to_blocks(original_hebrew_file))
     expanded_key = expand_key(key)
     enc_blocks = [encrypt(block, expanded_key) for block in blocks]
     dec_blocks = [decrypt(block, expanded_key) for block in enc_blocks]
