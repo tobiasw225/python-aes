@@ -1,3 +1,5 @@
+import secrets
+
 import pytest
 
 from python_aes.helper import get_key
@@ -46,13 +48,13 @@ def original_hebrew_file():
 
 
 @pytest.fixture(scope="module")
-def test_block():
-    return get_block("00112233445566778899aabbccddeeff")
+def random_test_block():
+    return get_block(secrets.token_hex(16))
 
 
 @pytest.fixture(scope="module")
 def key():
-    return get_key("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
+    return get_key(secrets.token_hex(32))
 
 
 @pytest.fixture(scope="module")
