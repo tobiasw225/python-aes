@@ -25,11 +25,11 @@ from python_aes.helper import (
     hex_string,
     process_block,
     sample_nonce,
-    rstrip,
+    rstrip, remove_trailing_zero,
 )
 from python_aes.key_manager import expand_key
-from python_aes.process_bytes import block_to_byte, blocks_of_file, blocks_of_string
-from python_aes.text_encoding import chr_decode, string_to_blocks
+from python_aes.byte_util import block_to_byte, blocks_of_file, blocks_of_string
+from python_aes.text_util import chr_decode, string_to_blocks
 from python_aes.test.utils import download
 
 
@@ -177,7 +177,7 @@ class AESBytes(AESInterface):
                 _buffer = dec_block
                 last_block = block
             # last block: remove all trailing elements.
-            _buffer = rstrip(_buffer.tolist(), 0)
+            _buffer = remove_trailing_zero(_buffer.tolist())
             fout.write(block_to_byte(_buffer))
 
 
@@ -286,8 +286,7 @@ class AESBytesCTR(AESCTR):
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
-            # remove trailing zeros
-            _buffer = rstrip(_buffer, 0)
+            _buffer = remove_trailing_zero(_buffer)
             fout.write(block_to_byte(_buffer))
 
     def encrypt(self, filename: str, output_file: str):

@@ -1,10 +1,12 @@
+import os
+
 from itertools import cycle
 import filecmp
 
 from python_aes.helper import hex_string
 from python_aes.aes256 import encrypt
 from python_aes.aes_interface import AESStringCTR, AESBytesCTR
-from python_aes.text_encoding import text_blocks
+from python_aes.text_util import text_blocks
 
 
 def test_xor(test_string):
@@ -61,3 +63,5 @@ def test_bytes_full(original_byte_file, dec_byte_file, enc_byte_file):
     my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
     my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
     assert filecmp.cmp(original_byte_file, dec_byte_file) is True
+    os.remove(dec_byte_file)
+    os.remove(enc_byte_file)

@@ -11,6 +11,8 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
+from typing import List, Iterable
+
 import os
 import re
 from functools import partial
@@ -52,21 +54,18 @@ def process_block(block: str) -> np.ndarray:
 
 
 def get_key(key: str) -> np.ndarray:
-    """
-
-    :param key:
-    :return:
-    """
     if os.path.isfile(key):
         with open(key, "r") as f:
             key = f.read()
+    elif type(key) is not str:
+        raise ValueError("Key must be valid path or str.")
     return np.array(process_block(key))
 
 
 get_block = get_key
 
 
-def chunks(blocks, n: int = 16):
+def chunks(blocks, n: int = 16) -> List:
     """
         Yield successive n-sized chunks from blocks.
 
@@ -75,20 +74,23 @@ def chunks(blocks, n: int = 16):
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i : i + n]
+        yield blocks[i: i + n]
 
 
-def xor(data, key):
+def xor(data: str, key: str) -> List:
     return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
 
 
-def sample_nonce(block_size: int):
+def sample_nonce(block_size: int) -> np.ndarray:
     _nonce = np.zeros(block_size, dtype=int)
     _nonce[: block_size // 2] = generate_nonce(d_type="int", block_size=block_size // 2)
     return _nonce
 
 
-def rstrip(l: list, value):
+def rstrip(value, l: list) -> List:
     while l[-1] == value:
         l.pop(-1)
     return l
+
+
+remove_trailing_zero = partial(rstrip, 0)

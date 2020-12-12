@@ -1,3 +1,5 @@
+import os
+
 import filecmp
 from python_aes.aes_interface import AESString
 from python_aes.aes_interface import AESBytes
@@ -24,3 +26,5 @@ def test_if_dec_byte_equal_original(original_byte_file, dec_byte_file, enc_byte_
     my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
     my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
     assert filecmp.cmp(original_byte_file, dec_byte_file) is True
+    os.remove(dec_byte_file)
+    os.remove(enc_byte_file)

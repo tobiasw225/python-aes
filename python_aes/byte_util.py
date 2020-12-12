@@ -11,6 +11,8 @@
 #
 # Created by Tobias Wenzel in December 2019
 # Copyright (c) 2019 Tobias Wenzel
+from typing import List, Iterable
+
 import binascii
 import os
 
@@ -19,7 +21,7 @@ import numpy as np
 from python_aes.helper import chunks
 
 
-def fill_byte_block(block, block_size):
+def fill_byte_block(block: Iterable, block_size: int) -> List:
     block = [number for number in block]
     block.extend([0] * (block_size - len(block)))
     return block

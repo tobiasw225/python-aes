@@ -25,25 +25,13 @@ import numpy as np
 
 
 def string_to_blocks(text: str, block_size: int) -> np.ndarray:
-    """
-
-    :param text:
-    :param block_size:
-    :return:
-    """
     return reshape_blocks(blocks=[ord(c) for c in text], block_size=block_size)
 
 
-def text_blocks(text: str, block_size: int):
-    """
-
-    :param block_size:
-    :param text:
-    :return:
-    """
+def text_blocks(text: str, block_size: int) -> str:
     i = 0
     while i < len(text):
-        yield "".join(text[i : i + block_size])
+        yield "".join(text[i: i + block_size])
         i += block_size
 
 
@@ -65,11 +53,6 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
 
 
 def ascii_file_to_blocks(filename: str) -> np.ndarray:
-    """
-
-    :param filename:
-    :return:
-    """
     with open(filename, "r") as fin:
         text = fin.read()
     return reshape_blocks(blocks=[ord(c) for c in text])
@@ -80,51 +63,6 @@ def chr_decode(c) -> str:
         return chr(c)
     except Exception:
         return ""
-
-
-"""
-    utf
-
-"""
-
-
-def decode_block(block: list, encoding: str = "utf-8"):
-    """
-        from numbers to letters
-
-    :param block:
-    :param encoding:
-    :return:
-    """
-    step = 4 if encoding == "utf-16" else 2
-    b_block = [bytes(block[i : i + step]) for i in range(0, 16, step)]
-    signs = []
-    for sign in b_block:
-        # For some reason, I get extra \x00 signs,
-        # when I call bytes() in this script. This
-        # does not happen when called on the console.
-        sign = sign.replace(b"\x00", b"")
-        try:
-            sign = sign.decode(encoding)
-        except UnicodeDecodeError:
-            sign = ""
-        signs.append(sign)
-    return "".join(signs)
-
-
-def blocks_to_string(blocks: list, encoding: str = "ascii"):
-    """
-
-    :param blocks:
-    :param encoding:
-    :return:
-    """
-    if encoding == "ascii":
-        for block in blocks:
-            yield "".join([chr_decode(c) for c in block])
-    else:
-        for block in blocks:
-            yield decode_block(block, encoding)
 
 
 def text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
