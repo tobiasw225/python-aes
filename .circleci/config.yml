@@ -15,7 +15,7 @@ jobs:
           command: python -m pytest python_aes/test
           name: Unit & Integration Tests
       - run:
-          command: python3.9 -m doctest -v python_aes/aes_interface.py
+          command: python3.9 -m doctest -v python_aes/*.py
           name: Doc-Tests
 
 workflows:
