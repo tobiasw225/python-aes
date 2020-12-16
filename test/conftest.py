@@ -2,10 +2,10 @@ import secrets
 
 import pytest
 
-from python_aes.helper import get_key
-from python_aes.helper import get_block
-from python_aes.test.utils import download
-from python_aes.test.utils import get_random_wiki_articles
+from src.helper import get_key
+from src.helper import get_block
+from test.utils import download
+from test.utils import get_random_wiki_articles
 
 
 @pytest.fixture(scope="module")
@@ -53,8 +53,13 @@ def random_test_block():
 
 
 @pytest.fixture(scope="module")
-def key():
-    return get_key(secrets.token_hex(32))
+def hex_key():
+    return secrets.token_hex(32)
+
+
+@pytest.fixture(scope="module")
+def key(hex_key):
+    return get_key(hex_key)
 
 
 @pytest.fixture(scope="module")

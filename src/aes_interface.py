@@ -18,19 +18,19 @@ from abc import ABC, abstractmethod
 from itertools import cycle
 from typing import List
 from pathlib import Path
-from python_aes.aes256 import decrypt, encrypt
-from python_aes.helper import (
+from src.aes256 import decrypt, encrypt
+from src.helper import (
     chunks,
     get_key,
     hex_string,
     process_block,
     sample_nonce,
-    rstrip, remove_trailing_zero,
+    remove_trailing_zero,
 )
-from python_aes.key_manager import expand_key
-from python_aes.byte_util import block_to_byte, blocks_of_file, blocks_of_string
-from python_aes.text_util import chr_decode, string_to_blocks
-from python_aes.test.utils import download
+from src.key_manager import expand_key
+from src.byte_util import block_to_byte, blocks_of_file, blocks_of_string
+from src.text_util import chr_decode, string_to_blocks
+from test.utils import download
 
 
 class AESInterface(ABC):
@@ -41,7 +41,6 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self.set_key(key="keys/gKey")
         self._init_vector = np.random.randint(0, 255, 16)
 
     @property
@@ -57,7 +56,7 @@ class AESInterface(ABC):
         """
         self._init_vector = get_key(key)
 
-    def set_key(self, key: str = "../keys/gKey"):
+    def set_key(self, key: str):
         """
             The key can be either a file (plain-text hex-digits)
             or passed as string.
@@ -90,22 +89,10 @@ class AESInterface(ABC):
 
 
 class AESString(AESInterface):
-    """
-    >>> my_aes = AESString()
-    >>> enc = "".join(s for s in my_aes.encrypt('test string'))
-    >>> dec_string = "".join(s for s in my_aes.decrypt(enc)).rstrip()
-    >>> print(dec_string)
-    test string
-    """
-
     def __init__(self):
         super().__init__()
 
     def encrypt(self, text: str) -> str:
-        """
-        :param text:
-        :return:
-        """
         last_block = self.init_vector
         blocks = string_to_blocks(text, block_size=16)
         for block in blocks:
@@ -114,10 +101,6 @@ class AESString(AESInterface):
             yield hex_string(last_block)
 
     def decrypt(self, text: str) -> str:
-        """
-        :param text: encrypted
-        :return:
-        """
         last_block = self.init_vector
         blocks = process_block(text)
         for block in chunks(blocks):
@@ -128,18 +111,6 @@ class AESString(AESInterface):
 
 
 class AESBytes(AESInterface):
-    """
-    >>> filename = "test.svg"
-    >>> download(url="https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download",  output_file=filename)
-    >>> my_aes = AESBytes()
-    >>> enc_file = "test.enc.svg"
-    >>> dec_file = "test.dec.svg"
-    >>> my_aes.encrypt(filename=filename, output_file=enc_file)
-    >>> my_aes.decrypt(filename=enc_file, output_file=dec_file)
-    >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
-    True
-
-    """
 
     def encrypt(self, filename: str, output_file: str):
         """
@@ -210,16 +181,6 @@ class AESCTR(AESInterface):
 
 
 class AESStringCTR(AESCTR):
-    """
-    >>> my_aes = AESStringCTR()
-    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    >>> my_aes.set_nonce("b2e47dd87113a992")
-    >>> test_string = "123456sehr gut."
-    >>> enc = my_aes.encrypt(test_string)
-    >>> dec = "".join(s for s in my_aes.decrypt(enc))
-    >>> print(dec) # doctest: +NORMALIZE_WHITESPACE
-        123456sehr gut.
-    """
 
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)
@@ -257,21 +218,6 @@ class AESStringCTR(AESCTR):
 
 
 class AESBytesCTR(AESCTR):
-    """
-    >>> my_aes = AESBytesCTR()
-    >>> filename = "test.svg"
-    >>> download(url="https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download",  output_file=filename)
-    >>> enc_file = "test.enc.svg"
-    >>> dec_file = "test.dec.svg"
-    >>> my_aes.set_key("8e81c9e1ff726e35655705c6f362f1c0733836869c96056e7128970171d26fe1")
-    >>> my_aes.set_nonce(\
-        "b2e47dd87113a99201a54904c61f7a6f51d1f92187294faf3b5d8e8dd07ce48b"[:16]\
-    )
-    >>> my_aes.encrypt(filename=filename, output_file=enc_file)
-    >>> my_aes.decrypt(filename=enc_file, output_file=dec_file)
-    >>> print(Path(filename).stat().st_size == Path(dec_file).stat().st_size)
-    True
-    """
 
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)

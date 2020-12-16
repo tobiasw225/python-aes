@@ -13,8 +13,8 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import numpy as np
-from python_aes.rcon import rcon
-from python_aes.sbox import sbox
+from src.rcon import rcon
+from src.sbox import sbox
 
 
 def key_schedule_core(word: np.ndarray, iteration: int) -> list:

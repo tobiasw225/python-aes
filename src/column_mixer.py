@@ -15,7 +15,7 @@
 
 import numpy as np
 
-from python_aes.mix_col_tables import *
+from src.mix_col_tables import *
 
 
 def mix_column(col: list) -> list:

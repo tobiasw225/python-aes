@@ -3,10 +3,10 @@ import os
 from itertools import cycle
 import filecmp
 
-from python_aes.helper import hex_string
-from python_aes.aes256 import encrypt
-from python_aes.aes_interface import AESStringCTR, AESBytesCTR
-from python_aes.text_util import text_blocks
+from src.helper import hex_string
+from src.aes256 import encrypt
+from src.aes_interface import AESStringCTR, AESBytesCTR
+from src.text_util import text_blocks
 
 
 def test_xor(test_string):
@@ -21,8 +21,9 @@ def test_xor(test_string):
     assert test_string == bytes(dec_text).decode()
 
 
-def test_enc_dec_step(test_string):
+def test_enc_dec_step(test_string, hex_key):
     my_aes = AESStringCTR()
+    my_aes.set_key(hex_key)
     enc_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
     enc_nonce = hex_string(enc_nonce)
     enc_block = [
@@ -38,8 +39,10 @@ def test_enc_dec_step(test_string):
     assert test_string == bytes(dec_text).decode()
 
 
-def test_enc_dec_full(random_wiki_articles):
+def test_enc_dec_full(random_wiki_articles, hex_key):
     my_aes = AESStringCTR()
+    my_aes.set_key(hex_key)
+    # todo
     # my_aes.set_nonce(sample_nonce(16))
     blocks = text_blocks(random_wiki_articles, block_size=16)
     for i, block in enumerate(blocks):
@@ -58,8 +61,9 @@ def test_enc_dec_full(random_wiki_articles):
         assert block == bytes(dec_text).decode()
 
 
-def test_bytes_full(original_byte_file, dec_byte_file, enc_byte_file):
+def test_bytes_full(original_byte_file, dec_byte_file, enc_byte_file, hex_key):
     my_aes = AESBytesCTR()
+    my_aes.set_key(hex_key)
     my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
     my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
     assert filecmp.cmp(original_byte_file, dec_byte_file) is True

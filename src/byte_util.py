@@ -18,7 +18,7 @@ import os
 
 import numpy as np
 
-from python_aes.helper import chunks
+from src.helper import chunks
 
 
 def fill_byte_block(block: Iterable, block_size: int) -> List:

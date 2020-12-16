@@ -5,5 +5,5 @@ python:
 install:
   - "pip install -r requirements.txt"
 script:
-  - python -m pytest python_aes/test/
-  - python -m doctest -v python_aes/aes_interface.py
+  - python -m pytest test/
+  - python -m doctest -v src

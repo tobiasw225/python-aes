@@ -1,7 +1,8 @@
 
+
 # python-aes
 
-![Tests](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)
+![Tests](https://travis-ci.org/tobiasw225/python-aes.svg?branch=main)
 
 
 This is my simple implementation of the AES256 algorithm. 
