@@ -1,14 +1,12 @@
 import tempfile
 
-import os
-
 from itertools import cycle
 import filecmp
 
 from src.helper import hex_string
 from src.aes256 import encrypt
 from src.aes_interface import AESStringCTR, AESBytesCTR
-from src.text_util import text_blocks
+from src.util import text_blocks
 
 
 def test_xor(test_string):

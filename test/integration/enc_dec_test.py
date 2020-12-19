@@ -1,11 +1,9 @@
-import os
-
 import numpy as np
 from src.aes256 import decrypt
 from src.aes256 import encrypt
 from src.key_manager import expand_key
-from src.text_util import string_to_blocks, text_file_to_blocks
-from src.text_util import ascii_file_to_blocks
+from src.util import string_to_blocks, text_file_to_blocks
+from src.util import ascii_file_to_blocks
 
 
 def test_ascii_string(key, test_string):

@@ -29,7 +29,7 @@ from src.helper import (
 )
 from src.key_manager import expand_key
 from src.byte_util import block_to_byte, blocks_of_file, blocks_of_string
-from src.text_util import chr_decode, string_to_blocks
+from src.util import chr_decode, string_to_blocks
 
 
 class AESInterface(ABC):
