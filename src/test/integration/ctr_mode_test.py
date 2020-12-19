@@ -6,7 +6,7 @@ import filecmp
 from src.helper import hex_string
 from src.test.utils import sample_nonce
 from src.aes256 import encrypt
-from src.aes_interface import AESStringCTR, AESBytesCTR
+from src.aes_ctr_mode import AESStringCTR, AESBytesCTR
 from src.util import text_blocks
 
 
