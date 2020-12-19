@@ -1,3 +1,5 @@
+import tempfile
+
 import os
 
 from itertools import cycle
@@ -61,11 +63,10 @@ def test_enc_dec_full(random_wiki_articles, hex_key):
         assert block == bytes(dec_text).decode()
 
 
-def test_bytes_full(original_byte_file, dec_byte_file, enc_byte_file, hex_key):
+def test_bytes_full(original_byte_file, hex_key):
     my_aes = AESBytesCTR()
     my_aes.set_key(hex_key)
-    my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
-    my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
-    assert filecmp.cmp(original_byte_file, dec_byte_file) is True
-    os.remove(dec_byte_file)
-    os.remove(enc_byte_file)
+    with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
+        my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
+        my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
+        assert filecmp.cmp(in_file.name, dec_file.name) is True

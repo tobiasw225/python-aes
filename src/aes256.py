@@ -60,7 +60,7 @@ def decrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:
     :return: decrypted array
     """
     for i in range(14, -1, -1):
-        ri = expanded_key[i: i + 16]
+        ri = expanded_key[i : i + 16]
         if i == 14:
             block = add_roundkey(block, ri)
         else:

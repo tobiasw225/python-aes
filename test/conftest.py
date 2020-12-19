@@ -1,10 +1,16 @@
 import secrets
+from contextlib import contextmanager
+
+import shutil
+
+import urllib.request
+
+import tempfile
 
 import pytest
 
 from src.helper import get_key
 from src.helper import get_block
-from test.utils import download
 from test.utils import get_random_wiki_articles
 
 
@@ -13,38 +19,45 @@ def test_string():
     return "Ich bin ein kleiner Test String."
 
 
+@contextmanager
+def download_test_file_handler(url: str):
+    """
+    download file with url, save it to tmp-file
+    and afterwards clean up.
+    >>> with download_test_file_handler("https://www.w3.org/TR/PNG/iso_8859-1.txt") as file:
+    ...       pass
+
+    :param url:
+    :return:
+    """
+    file = tempfile.NamedTemporaryFile()
+    with urllib.request.urlopen(url) as response:
+        shutil.copyfileobj(response, file)
+    try:
+        yield file
+    finally:
+        file.close()
+
+
 @pytest.fixture(scope="module")
 def original_byte_file():
-    filename = "test.svg"
-    url = "https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download"
-    download(url=url, output_file=filename)
-    return filename
-
-
-@pytest.fixture(scope="module")
-def dec_byte_file():
-    return "test.dec.svg"
-
-
-@pytest.fixture(scope="module")
-def enc_byte_file():
-    return "test.enc.svg"
+    return download_test_file_handler(
+        "https://upload.wikimedia.org/wikipedia/commons/f/ff/Oxygen-actions-im-qq.svg?download"
+    )
 
 
 @pytest.fixture(scope="module")
 def original_txt_file():
-    filename = "test.txt"
-    url = "https://archive.org/stream/goodytwoshoes00newyiala/goodytwoshoes00newyiala_djvu.txt"
-    download(url=url, output_file=filename)
-    return filename
+    return download_test_file_handler(
+        "https://archive.org/stream/goodytwoshoes00newyiala/goodytwoshoes00newyiala_djvu.txt"
+    )
 
 
 @pytest.fixture(scope="module")
 def original_hebrew_file():
-    filename = "test_hebrew.txt"
-    url = "http://titus.uni-frankfurt.de/unicode/alphabet/hebrtest.htm"
-    download(url=url, output_file=filename)
-    return filename
+    return download_test_file_handler(
+        "http://titus.uni-frankfurt.de/unicode/alphabet/hebrtest.htm"
+    )
 
 
 @pytest.fixture(scope="module")

@@ -1,8 +1,4 @@
-import os
-
 import requests
-import urllib.request
-import shutil
 
 
 def get_random_wiki_articles(n: int):
@@ -40,10 +36,3 @@ def get_random_wiki_articles(n: int):
     for article in data["query"]["pages"].values():
         # some articles have no text.
         yield f"{article['title']}\n{article.get('extract', '')}"
-
-
-def download(url, output_file):
-    if not os.path.exists(output_file):
-        with urllib.request.urlopen(url) as response, \
-                open(output_file, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)

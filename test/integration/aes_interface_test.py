@@ -1,3 +1,5 @@
+import tempfile
+
 import os
 
 import filecmp
@@ -22,11 +24,10 @@ def test_if_string_dec_equal_original(test_string, hex_key):
 #         assert dec_string.strip() == article.strip()
 
 
-def test_if_dec_byte_equal_original(original_byte_file, dec_byte_file, enc_byte_file, hex_key):
+def test_if_dec_byte_equal_original(original_byte_file, hex_key):
     my_aes = AESBytes()
     my_aes.set_key(hex_key)
-    my_aes.encrypt(filename=original_byte_file, output_file=enc_byte_file)
-    my_aes.decrypt(filename=enc_byte_file, output_file=dec_byte_file)
-    assert filecmp.cmp(original_byte_file, dec_byte_file) is True
-    os.remove(dec_byte_file)
-    os.remove(enc_byte_file)
+    with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
+        my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
+        my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
+        assert filecmp.cmp(in_file.name, dec_file.name) is True

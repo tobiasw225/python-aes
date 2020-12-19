@@ -30,7 +30,6 @@ from src.helper import (
 from src.key_manager import expand_key
 from src.byte_util import block_to_byte, blocks_of_file, blocks_of_string
 from src.text_util import chr_decode, string_to_blocks
-from test.utils import download
 
 
 class AESInterface(ABC):
@@ -111,7 +110,6 @@ class AESString(AESInterface):
 
 
 class AESBytes(AESInterface):
-
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
@@ -181,7 +179,6 @@ class AESCTR(AESInterface):
 
 
 class AESStringCTR(AESCTR):
-
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)
 
@@ -218,7 +215,6 @@ class AESStringCTR(AESCTR):
 
 
 class AESBytesCTR(AESCTR):
-
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)
 

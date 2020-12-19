@@ -31,7 +31,7 @@ def string_to_blocks(text: str, block_size: int) -> np.ndarray:
 def text_blocks(text: str, block_size: int) -> str:
     i = 0
     while i < len(text):
-        yield "".join(text[i: i + block_size])
+        yield "".join(text[i : i + block_size])
         i += block_size
 
 

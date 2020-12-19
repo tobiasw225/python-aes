@@ -74,7 +74,7 @@ def chunks(blocks, n: int = 16) -> List:
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i: i + n]
+        yield blocks[i : i + n]
 
 
 def xor(data: str, key: str) -> List:
