@@ -1,4 +1,7 @@
+import numpy as np
 import requests
+
+from src.helper import generate_nonce
 
 
 def get_random_wiki_articles(n: int):
@@ -36,3 +39,9 @@ def get_random_wiki_articles(n: int):
     for article in data["query"]["pages"].values():
         # some articles have no text.
         yield f"{article['title']}\n{article.get('extract', '')}"
+
+
+def sample_nonce(block_size: int) -> np.ndarray:
+    _nonce = np.zeros(block_size, dtype=int)
+    _nonce[: block_size // 2] = generate_nonce(d_type="int", block_size=block_size // 2)
+    return _nonce

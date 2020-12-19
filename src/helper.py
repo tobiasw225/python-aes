@@ -11,7 +11,7 @@
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
-from typing import List, Iterable
+from typing import List
 
 import os
 import re
@@ -79,12 +79,6 @@ def chunks(blocks, n: int = 16) -> List:
 
 def xor(data: str, key: str) -> List:
     return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
-
-
-def sample_nonce(block_size: int) -> np.ndarray:
-    _nonce = np.zeros(block_size, dtype=int)
-    _nonce[: block_size // 2] = generate_nonce(d_type="int", block_size=block_size // 2)
-    return _nonce
 
 
 def rstrip(value, l: list) -> List:

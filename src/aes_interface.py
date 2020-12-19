@@ -16,7 +16,7 @@ import numpy as np
 import os
 from abc import ABC, abstractmethod
 from itertools import cycle
-from typing import List
+from typing import List, Iterable, Optional
 from pathlib import Path
 from src.aes256 import decrypt, encrypt
 from src.helper import (
@@ -24,7 +24,6 @@ from src.helper import (
     get_key,
     hex_string,
     process_block,
-    sample_nonce,
     remove_trailing_zero,
 )
 from src.key_manager import expand_key
@@ -161,9 +160,9 @@ class AESCTR(AESInterface):
         super().__init__()
         self.ctr = 0
         # first half is for nonce, rest is for counter
-        self.block_size = block_size
+        # todo other block-sizes
         assert block_size == 16
-        self._nonce = sample_nonce(block_size)
+        self.block_size = block_size
 
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
@@ -171,8 +170,9 @@ class AESCTR(AESInterface):
         _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
         return _nonce
 
-    def set_nonce(self, nonce: str):
-        nonce = process_block(nonce)
+    def set_nonce(self, nonce):
+        if type(nonce) is str:
+            nonce = process_block(nonce)
         assert len(nonce) * 2 == self.block_size
         self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[: self.block_size // 2] = nonce

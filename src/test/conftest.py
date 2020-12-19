@@ -11,7 +11,7 @@ import pytest
 
 from src.helper import get_key
 from src.helper import get_block
-from test.utils import get_random_wiki_articles
+from src.test.utils import get_random_wiki_articles
 
 
 @pytest.fixture(scope="module")
