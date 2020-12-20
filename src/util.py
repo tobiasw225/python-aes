@@ -52,12 +52,6 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
     return new_blocks.reshape((n_rows, block_size))
 
 
-def ascii_file_to_blocks(filename: str) -> np.ndarray:
-    with open(filename, "r") as fin:
-        text = fin.read()
-    return reshape_blocks(blocks=[ord(c) for c in text])
-
-
 def chr_decode(c) -> str:
     try:
         return chr(c)
@@ -65,7 +59,13 @@ def chr_decode(c) -> str:
         return ""
 
 
-def text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
+def ascii_file_to_blocks(filename: str) -> np.ndarray:
+    with open(filename, "r") as fin:
+        text = fin.read()
+    return reshape_blocks(blocks=[ord(c) for c in text])
+
+
+def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
     """
         letters to numbers
 
@@ -73,8 +73,6 @@ def text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
     :param encoding:
     :return:
     """
-    if encoding == "ascii":
-        return ascii_file_to_blocks(filename)
     end = 4 if encoding == "utf-16" else 16
     with open(filename, "rb") as fin:
         while letters := fin.read(end):

@@ -9,8 +9,8 @@ import tempfile
 
 import pytest
 
-from src.helper import get_key
-from src.helper import get_block
+from src.key_manager import expand_key
+from src.helper import hex_digits_to_block
 from src.test.utils import get_random_wiki_articles
 
 
@@ -62,17 +62,22 @@ def original_hebrew_file():
 
 @pytest.fixture(scope="module")
 def random_test_block():
-    return get_block(secrets.token_hex(16))
+    return hex_digits_to_block(secrets.token_hex(16))
 
 
 @pytest.fixture(scope="module")
-def hex_key():
+def hex_key() -> str:
     return secrets.token_hex(32)
 
 
 @pytest.fixture(scope="module")
 def key(hex_key):
-    return get_key(hex_key)
+    return hex_digits_to_block(hex_key)
+
+
+@pytest.fixture(scope="module")
+def expanded_key(key):
+    return expand_key(key)
 
 
 @pytest.fixture(scope="module")

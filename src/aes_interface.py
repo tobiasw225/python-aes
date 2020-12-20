@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 from src.aes256 import decrypt, encrypt
 from src.helper import (
     chunks,
-    get_key,
+    hex_digits_to_block,
     hex_string,
     process_block,
     remove_trailing_zero,
@@ -45,12 +45,7 @@ class AESInterface(ABC):
 
     @init_vector.setter
     def init_vector(self, key: str):
-        """
-
-        :param key:
-        :return:
-        """
-        self._init_vector = get_key(key)
+        self._init_vector = hex_digits_to_block(key)
 
     def set_key(self, key: str):
         """
@@ -60,7 +55,7 @@ class AESInterface(ABC):
         :param key
         :return:
         """
-        self.key = get_key(key)
+        self.key = hex_digits_to_block(key)
         self.expanded_key = expand_key(self.key)
 
     @abstractmethod

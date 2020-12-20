@@ -21,17 +21,11 @@ from itertools import cycle
 import numpy as np
 
 
-def hex_string(block):
+def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
 
 
 def generate_nonce(d_type, block_size: int = 16):
-    """
-
-    :param d_type:
-    :param block_size:
-    :return:
-    """
     my_nonce = list(np.random.randint(0, 255, block_size))
     if d_type == "int":
         return my_nonce
@@ -49,20 +43,17 @@ def process_block(block: str) -> np.ndarray:
     :param block:
     :return:
     """
-    block = re.findall("..", block)  #
+    block = re.findall("..", block)
     return np.array(list(map(lambda x: int(x, 16), block)), dtype=int)
 
 
-def get_key(key: str) -> np.ndarray:
+def hex_digits_to_block(key: str) -> np.ndarray:
     if os.path.isfile(key):
         with open(key, "r") as f:
             key = f.read()
     elif type(key) is not str:
         raise ValueError("Key must be valid path or str.")
     return np.array(process_block(key))
-
-
-get_block = get_key
 
 
 def chunks(blocks, n: int = 16) -> List:
@@ -74,7 +65,7 @@ def chunks(blocks, n: int = 16) -> List:
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i : i + n]
+        yield blocks[i: i + n]
 
 
 def xor(data: str, key: str) -> List:
