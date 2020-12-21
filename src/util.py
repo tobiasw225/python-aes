@@ -17,9 +17,8 @@
 """
 
 """
-
+import random
 import re
-import numpy as np
 import binascii
 import os
 
@@ -29,8 +28,9 @@ from functools import partial
 from typing import List, Iterable
 
 
-def string_to_blocks(text: str, block_size: int) -> np.ndarray:
-    return reshape_blocks(blocks=[ord(c) for c in text], block_size=block_size)
+def string_to_blocks(text: str, block_size: int) -> List:
+    return reshape_blocks(blocks=[ord(c) for c in text],
+                          block_size=block_size)
 
 
 def text_blocks(text: str, block_size: int) -> str:
@@ -40,7 +40,7 @@ def text_blocks(text: str, block_size: int) -> str:
         i += block_size
 
 
-def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
+def reshape_blocks(blocks: list, block_size: int = 16) -> List:
     """
         reshape blocks from simple list
         to list of lists and add a default-value
@@ -50,11 +50,15 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> np.ndarray:
     :param block_size:
     :return:
     """
-    future_len = len(blocks) + block_size - (len(blocks) % block_size)
-    n_rows = future_len // block_size
-    new_blocks = np.full(future_len, dtype=int, fill_value=32)
-    new_blocks[: len(blocks)] = blocks
-    return new_blocks.reshape((n_rows, block_size))
+    start = 0
+    while len(row := blocks[start:start+block_size]) == block_size:
+        yield row
+        start += block_size
+    # last row might not be full
+    last_row = [32]*block_size
+    for i in range(len(row)):
+        last_row[i] = row[i]
+    yield last_row
 
 
 def chr_decode(c) -> str:
@@ -64,7 +68,7 @@ def chr_decode(c) -> str:
         return ""
 
 
-def ascii_file_to_blocks(filename: str) -> np.ndarray:
+def ascii_file_to_blocks(filename: str) -> List:
     with open(filename, "r") as fin:
         text = fin.read()
     return reshape_blocks(blocks=[ord(c) for c in text])
@@ -94,7 +98,7 @@ def hex_string(block) -> str:
 
 
 def generate_nonce(d_type, block_size: int = 16):
-    my_nonce = list(np.random.randint(0, 255, block_size))
+    my_nonce = list(random.randint(0, 255) for i in range(block_size))
     if d_type == "int":
         return my_nonce
     elif d_type == "str":
@@ -160,14 +164,14 @@ def fill_byte_block(block: Iterable, block_size: int) -> List:
     return block
 
 
-def blocks_of_file(filename: str, block_size: int = 16) -> np.ndarray:
+def blocks_of_file(filename: str, block_size: int = 16) -> List:
     assert os.path.isfile(filename)
     with open(file=filename, mode="rb") as fin:
         while block := fin.read(block_size):
-            yield np.array(fill_byte_block(block, block_size))
+            yield fill_byte_block(block, block_size)
 
 
-def blocks_of_string(text: str, block_size: int = 16) -> np.ndarray:
+def blocks_of_string(text: str, block_size: int = 16) -> List:
     text = bytes(text, "utf-8")
     for i, block in enumerate(chunks(text, n=block_size)):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")

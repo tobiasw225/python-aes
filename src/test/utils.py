@@ -1,7 +1,13 @@
-import numpy as np
+from typing import List
+
 import requests
 
 from src.util import generate_nonce
+
+
+def assert_blocks_equal(block_a, block_b):
+    for a, b in zip(block_a, block_b):
+        assert a == b
 
 
 def get_random_wiki_articles(n: int):
@@ -41,7 +47,9 @@ def get_random_wiki_articles(n: int):
         yield f"{article['title']}\n{article.get('extract', '')}"
 
 
-def sample_nonce(block_size: int) -> np.ndarray:
-    _nonce = np.zeros(block_size, dtype=int)
-    _nonce[: block_size // 2] = generate_nonce(d_type="int", block_size=block_size // 2)
-    return _nonce
+def sample_nonce(block_size: int) -> List:
+    nonce = [0] * block_size
+    _nonce = generate_nonce(d_type="int", block_size=block_size // 2)
+    for i, n in enumerate(_nonce):
+        nonce[i] = n
+    return nonce

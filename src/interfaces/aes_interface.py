@@ -11,8 +11,7 @@
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
-
-import numpy as np
+import random
 import os
 from abc import ABC, abstractmethod
 
@@ -29,7 +28,7 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self._init_vector = np.random.randint(0, 255, 16)
+        self._init_vector = [random.randint(0, 255) for _ in range(16)]
 
     @property
     def init_vector(self):
@@ -67,7 +66,7 @@ class AESString(AESInterface):
         last_block = self.init_vector
         blocks = string_to_blocks(text, block_size=16)
         for block in blocks:
-            block = np.bitwise_xor(block, last_block)
+            block = [l ^ d for l, d in zip(block, last_block)]
             last_block = encrypt(block, self.expanded_key)
             yield hex_string(last_block)
 
@@ -76,7 +75,7 @@ class AESString(AESInterface):
         blocks = process_block(text)
         for block in chunks(blocks):
             dec_block = decrypt(block, self.expanded_key)
-            last_block = np.bitwise_xor(last_block, dec_block)
+            last_block = [l ^ d for l, d in zip(last_block, dec_block)]
             yield "".join([chr_decode(c) for c in last_block])
             last_block = block
 
@@ -95,7 +94,7 @@ class AESBytes(AESInterface):
         with open(output_file, "wb") as fout:
             for block in blocks_of_file(filename):
                 # cbc (comment out for ecb)
-                block = np.bitwise_xor(block, last_block)
+                block = [l ^ d for l, d in zip(block, last_block)]
                 last_block = encrypt(block, self.expanded_key)
                 fout.write(block_to_byte(last_block))
 
@@ -112,11 +111,11 @@ class AESBytes(AESInterface):
             for block in blocks_of_file(filename):
                 dec_block = decrypt(block, self.expanded_key)
                 # cbc (comment out for ecb)
-                dec_block = np.bitwise_xor(last_block, dec_block)
+                dec_block = [l ^ d for l, d in zip(last_block, dec_block)]
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
                 last_block = block
             # last block: remove all trailing elements.
-            _buffer = remove_trailing_zero(_buffer.tolist())
+            _buffer = remove_trailing_zero(_buffer)
             fout.write(block_to_byte(_buffer))

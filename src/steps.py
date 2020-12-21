@@ -1,32 +1,29 @@
-import numpy as np
+from itertools import chain
+from typing import List, Iterable
 
 from src.tables import m2, m3, m14, m11, m13, m9
+from src.util import chunks
 
 
 def shift_block(block: list, invert: bool = False) -> list:
     """
-    # >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
-    #  136, 153, 170, 187, 204, 221, 238, 255])
-    #  >>> shift_block(block)  # doctest: +NORMALIZE_WHITESPACE
-    #  array([  0,  85, 170, 255,  68, 153, 238,  51, 136, 221,  34, 119, 204,
-    #     17, 102, 187])
-    # >>> shift_block(block, invert=True) # doctest: +NORMALIZE_WHITESPACE
-    # array([  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204,
-    #        221, 238, 255])
+    >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
+    >>> shift_block(block)  # doctest: +NORMALIZE_WHITESPACE
+    [0, 85, 170, 255, 68, 153, 238, 51, 136, 221, 34, 119, 204, 17, 102, 187]
+    >>> shift_block(block, invert=True) # doctest: +NORMALIZE_WHITESPACE
+    [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
 
     :param block:
     :param invert:
     :return:
     """
     temp_arr, indices = [0] * 4, [0] * 4
-
     # Loop for Iteration of each row (2nd, 3rd, 4th)
     for row in range(1, 4):
         for i in range(row):
             # Get the elements of the row
             i = row
             j = 0
-
             while i < 16:
                 # save digits of block
                 # as well as positions
@@ -71,43 +68,30 @@ def mix_column_inv(col: list) -> list:
         m11[col[0]] ^ m13[col[1]] ^ m9[col[2]] ^ m14[col[3]],
     ]
 
-# this matrix makes looping way easier.
 
-four_by_four_mat = np.array(
-    [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
-)
-
-
-def mix_columns(block: np.ndarray) -> np.ndarray:
+def mix_columns(block: List) -> List:
     """
-    >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
-     136, 153, 170, 187, 204, 221, 238, 255])
+    >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> mix_columns(block)
-    array([ 34, 119,   0,  85, 102,  51,  68,  17, 170, 255, 136, 221, 238,
-           187, 204, 153])
+    [34, 119, 0, 85, 102, 51, 68, 17, 170, 255, 136, 221, 238, 187, 204, 153]
 
     """
-    return np.array(
-        [mix_column(block[row]) for row in four_by_four_mat], dtype=int
-    ).reshape(-1)
+    return list(chain.from_iterable(mix_column(row)
+                                    for row in chunks(block, n=4)))
 
 
-def mix_columns_inv(block: np.ndarray) -> np.ndarray:
+def mix_columns_inv(block: List) -> Iterable:
     """
-    >>> block = np.array([  0,  17,  34,  51,  68,  85, 102, 119,\
-     136, 153, 170, 187, 204, 221, 238, 255])
+    >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> mix_columns_inv(block)
-    array([170, 255, 136, 221, 238, 187, 204, 153,  34, 119,   0,  85, 102,
-            51,  68,  17])
-    >>> all(mix_columns_inv(mix_columns(block)) == block)
+    [170, 255, 136, 221, 238, 187, 204, 153, 34, 119, 0, 85, 102, 51, 68, 17]
+    >>> mix_columns_inv(mix_columns(block)) == block
     True
-
     """
-    return np.array(
-        [mix_column_inv(block[row]) for row in four_by_four_mat], dtype=int
-    ).reshape(-1)
+    return list(chain.from_iterable(mix_column_inv(row)
+                                    for row in chunks(block, n=4)))
 
 
-def add_roundkey(round_key: np.ndarray, block: np.ndarray) -> np.ndarray:
+def add_roundkey(round_key: List, block: List) -> List:
     assert len(block) == len(round_key)
-    return np.bitwise_xor(round_key, block)
+    return [rk ^ b for rk, b in zip(round_key, block)]
