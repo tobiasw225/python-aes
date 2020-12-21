@@ -2,13 +2,14 @@
 
 # python-aes
 
-![Tests](https://travis-ci.org/tobiasw225/python-aes.svg?branch=main)
+![Tests](https://travis-ci.org/tobiasw225/python-aes.svg?branch=main
+)
 
 
 This is my simple implementation of the AES256 algorithm. 
 I initially implemented this project originally as part of the
 Cryptography Course at the Högskolan Dalarna in 2015. 
-The concept of each function can be fount on Wikipedia.
+The concept of each function can be found on Wikipedia.
 
 Although it can be used in practice, it's main purpose was
  to learn the algorithm and practice my python. For better performance

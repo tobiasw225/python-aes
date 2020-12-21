@@ -3,10 +3,10 @@ import tempfile
 from itertools import cycle
 import filecmp
 
-from src.helper import hex_string
+from src.util import hex_string
 from src.test.utils import sample_nonce
 from src.aes256 import encrypt
-from src.aes_ctr_mode import AESStringCTR, AESBytesCTR
+from src.interfaces.aes_ctr_mode import AESStringCTR, AESBytesCTR
 from src.util import text_blocks
 
 

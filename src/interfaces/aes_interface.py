@@ -17,16 +17,8 @@ import os
 from abc import ABC, abstractmethod
 
 from src.aes256 import decrypt, encrypt
-from src.helper import (
-    chunks,
-    hex_digits_to_block,
-    hex_string,
-    process_block,
-    remove_trailing_zero,
-)
+from src.util import hex_string, process_block, hex_digits_to_block, chunks, remove_trailing_zero, block_to_byte, blocks_of_file, chr_decode, string_to_blocks
 from src.key_manager import expand_key
-from src.byte_util import block_to_byte, blocks_of_file
-from src.util import chr_decode, string_to_blocks
 
 
 class AESInterface(ABC):
@@ -60,22 +52,10 @@ class AESInterface(ABC):
 
     @abstractmethod
     def encrypt(self, *args, **kwargs):
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
         pass
 
     @abstractmethod
     def decrypt(self, *args, **kwargs):
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
         pass
 
 
@@ -105,8 +85,8 @@ class AESBytes(AESInterface):
     def encrypt(self, filename: str, output_file: str):
         """
             encrypts file block by block
-            and returns the encrypted byte-string.
 
+        :param output_file:
         :param filename:
         :return:
         """

@@ -7,9 +7,8 @@ from itertools import cycle
 import numpy as np
 
 from src.aes256 import encrypt
-from src.aes_interface import AESInterface
-from src.byte_util import blocks_of_string, block_to_byte, blocks_of_file
-from src.helper import process_block, hex_string, remove_trailing_zero
+from src.interfaces.aes_interface import AESInterface
+from src.util import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
 
 
 class AESCTR(AESInterface):
@@ -26,6 +25,7 @@ class AESCTR(AESInterface):
         # todo other block-sizes
         assert block_size == 16
         self.block_size = block_size
+        self._nonce = np.zeros(self.block_size, dtype=int)
 
     def nonce(self, i):
         ctr = str(i).zfill(self.block_size // 2)
@@ -37,7 +37,6 @@ class AESCTR(AESInterface):
         if type(nonce) is str:
             nonce = process_block(nonce)
         assert len(nonce) * 2 == self.block_size
-        self._nonce = np.zeros(self.block_size, dtype=int)
         self._nonce[: self.block_size // 2] = nonce
 
 

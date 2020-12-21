@@ -8,10 +8,8 @@
 # Copyright (c) 2015 Tobias Wenzel
 
 import numpy as np
-from src.add_round_key import add_roundkey
-from src.column_mixer import mix_columns_inv, mix_columns
-from src.row_shifter import shift_block
-from src.sbox import sbox, sbox_inv
+from src.steps import add_roundkey, shift_block, mix_columns, mix_columns_inv
+from src.tables import sbox, sbox_inv
 
 
 def encrypt(block: np.ndarray, expanded_key: np.ndarray) -> np.ndarray:

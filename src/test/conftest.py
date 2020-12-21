@@ -10,7 +10,7 @@ import tempfile
 import pytest
 
 from src.key_manager import expand_key
-from src.helper import hex_digits_to_block
+from src.util import hex_digits_to_block
 from src.test.utils import get_random_wiki_articles
 
 

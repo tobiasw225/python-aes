@@ -1,7 +1,7 @@
 import numpy as np
 import requests
 
-from src.helper import generate_nonce
+from src.util import generate_nonce
 
 
 def get_random_wiki_articles(n: int):

@@ -10,9 +10,6 @@
 #         Decoding Function which can be used to derive a text out of a given
 #         (decoded) block.
 #
-# __remark__:
-#
-# __todos__:
 #
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
@@ -21,7 +18,15 @@
 
 """
 
+import re
 import numpy as np
+import binascii
+import os
+
+
+from itertools import cycle
+from functools import partial
+from typing import List, Iterable
 
 
 def string_to_blocks(text: str, block_size: int) -> np.ndarray:
@@ -82,3 +87,92 @@ def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
                 # when you have to fill up, it means you've reached eof
                 content.extend([0] * (end - len_byte))
             yield content
+
+
+def hex_string(block) -> str:
+    return "".join(str(format(sign, "02x")) for sign in block)
+
+
+def generate_nonce(d_type, block_size: int = 16):
+    my_nonce = list(np.random.randint(0, 255, block_size))
+    if d_type == "int":
+        return my_nonce
+    elif d_type == "str":
+        return hex_string(my_nonce)
+
+
+rand_key = partial(generate_nonce, "str")
+
+
+def process_block(block: str) -> List:
+    """
+        splits the string in 2pairs
+        ...
+    :param block:
+    :return:
+    """
+    block = re.findall("..", block)
+    return list(map(lambda x: int(x, 16), block))
+
+
+def hex_digits_to_block(key: str) -> List:
+    if os.path.isfile(key):
+        with open(key, "r") as f:
+            key = f.read()
+    elif type(key) is not str:
+        raise ValueError("Key must be valid path or str.")
+    return process_block(key)
+
+
+def chunks(blocks, n: int = 16) -> List:
+    """
+        Yield successive n-sized chunks from blocks.
+
+    :param blocks:
+    :param n:
+    :return:
+    """
+    for i in range(0, len(blocks), n):
+        yield blocks[i: i + n]
+
+
+def xor(data: str, key: str) -> List:
+    return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
+
+
+def rstrip(value, l: list) -> List:
+    while l[-1] == value:
+        l.pop(-1)
+    return l
+
+
+remove_trailing_zero = partial(rstrip, 0)
+
+
+"""
+    byte utils
+"""
+
+
+def fill_byte_block(block: Iterable, block_size: int) -> List:
+    block = [number for number in block]
+    block.extend([0] * (block_size - len(block)))
+    return block
+
+
+def blocks_of_file(filename: str, block_size: int = 16) -> np.ndarray:
+    assert os.path.isfile(filename)
+    with open(file=filename, mode="rb") as fin:
+        while block := fin.read(block_size):
+            yield np.array(fill_byte_block(block, block_size))
+
+
+def blocks_of_string(text: str, block_size: int = 16) -> np.ndarray:
+    text = bytes(text, "utf-8")
+    for i, block in enumerate(chunks(text, n=block_size)):
+        yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
+
+
+def block_to_byte(block) -> bytes:
+    b_block = [hex(number)[2:].zfill(2) for number in block]
+    return binascii.unhexlify("".join(b_block))
