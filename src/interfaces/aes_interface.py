@@ -15,9 +15,9 @@ import random
 import os
 from abc import ABC, abstractmethod
 
-from src.aes256 import decrypt, encrypt
-from src.util import hex_string, process_block, hex_digits_to_block, chunks, remove_trailing_zero, block_to_byte, blocks_of_file, chr_decode, string_to_blocks
-from src.key_manager import expand_key
+from aes256 import decrypt, encrypt
+from utils import hex_string, process_block, hex_digits_to_block, chunks, remove_trailing_zero, block_to_byte, blocks_of_file, chr_decode, string_to_blocks
+from key_manager import expand_key
 
 
 class AESInterface(ABC):

@@ -5,5 +5,5 @@ python:
 install:
   - "pip install -r requirements.txt"
 script:
-  - python -m pytest src/test/
-  - python -m doctest -v src/*.py
+  - cd src && python -m pytest src/test/
+  - cd src && python -m doctest -v src/*.py

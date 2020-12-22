@@ -17,20 +17,17 @@
 """
 
 """
-import random
-import re
 import binascii
 import os
-
-
-from itertools import cycle
+import random
+import re
 from functools import partial
-from typing import List, Iterable
+from itertools import cycle
+from typing import Iterable, List
 
 
 def string_to_blocks(text: str, block_size: int) -> List:
-    return reshape_blocks(blocks=[ord(c) for c in text],
-                          block_size=block_size)
+    return reshape_blocks(blocks=[ord(c) for c in text], block_size=block_size)
 
 
 def text_blocks(text: str, block_size: int) -> str:
@@ -51,11 +48,11 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> List:
     :return:
     """
     start = 0
-    while len(row := blocks[start:start+block_size]) == block_size:
+    while len(row := blocks[start : start + block_size]) == block_size:
         yield row
         start += block_size
     # last row might not be full
-    last_row = [32]*block_size
+    last_row = [32] * block_size
     for i in range(len(row)):
         last_row[i] = row[i]
     yield last_row
@@ -137,17 +134,17 @@ def chunks(blocks, n: int = 16) -> List:
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i: i + n]
+        yield blocks[i : i + n]
 
 
 def xor(data: str, key: str) -> List:
     return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
 
 
-def rstrip(value, l: list) -> List:
-    while l[-1] == value:
-        l.pop(-1)
-    return l
+def rstrip(value, my_list: list) -> List:
+    while my_list[-1] == value:
+        my_list.pop(-1)
+    return my_list
 
 
 remove_trailing_zero = partial(rstrip, 0)

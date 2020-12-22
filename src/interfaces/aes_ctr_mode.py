@@ -4,9 +4,9 @@ from typing import List
 
 from itertools import cycle
 
-from src.aes256 import encrypt
-from src.interfaces.aes_interface import AESInterface
-from src.util import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
+from aes256 import encrypt
+from interfaces.aes_interface import AESInterface
+from utils import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
 
 
 class AESCTR(AESInterface):

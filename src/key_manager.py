@@ -13,7 +13,7 @@
 # Copyright (c) 2015 Tobias Wenzel
 from typing import List
 
-from src.tables import sbox, rcon
+from tables import rcon, sbox
 
 
 def key_schedule_core(word: List, iteration: int) -> list:
@@ -66,6 +66,6 @@ def expand_key(key: List) -> List:
             word = [sbox[i] for i in word]
         key_row = key[c - 32 : c + 4 - 32]
         # key[c : c + 4] = key[c - 32 : c + 4 - 32] ^ word
-        key[c: c + 4] = [k ^ w for k, w in zip(key_row, word)]
+        key[c : c + 4] = [k ^ w for k, w in zip(key_row, word)]
         c += 4
     return key

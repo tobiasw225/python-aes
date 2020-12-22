@@ -8,8 +8,8 @@
 # Copyright (c) 2015 Tobias Wenzel
 from typing import List
 
-from src.steps import add_roundkey, shift_block, mix_columns, mix_columns_inv
-from src.tables import sbox, sbox_inv
+from steps import add_roundkey, mix_columns, mix_columns_inv, shift_block
+from tables import sbox, sbox_inv
 
 
 def encrypt(block: List, expanded_key: List) -> List:
@@ -29,7 +29,7 @@ def encrypt(block: List, expanded_key: List) -> List:
     :return: encrypted array
     """
     for i in range(15):
-        ri = expanded_key[i: i + 16]
+        ri = expanded_key[i : i + 16]
         if i != 0:
             block = [sbox[z] for z in block]
             block = shift_block(block)
@@ -56,7 +56,7 @@ def decrypt(block: List, expanded_key: List) -> List:
     :return: decrypted array
     """
     for i in range(14, -1, -1):
-        ri = expanded_key[i: i + 16]
+        ri = expanded_key[i : i + 16]
         if i == 14:
             block = add_roundkey(block=block, round_key=ri)
         else:

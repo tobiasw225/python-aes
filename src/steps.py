@@ -1,8 +1,8 @@
 from itertools import chain
-from typing import List, Iterable
+from typing import Iterable, List
 
-from src.tables import m2, m3, m14, m11, m13, m9
-from src.util import chunks
+from tables import m2, m3, m9, m11, m13, m14
+from utils import chunks
 
 
 def shift_block(block: list, invert: bool = False) -> list:
@@ -34,11 +34,11 @@ def shift_block(block: list, invert: bool = False) -> list:
 
             if not invert:
                 #  Every index is subtracted by 4 to get the new one
-                new_indices = map(lambda x: x-4, indices)
+                new_indices = map(lambda x: x - 4, indices)
                 new_indices = [z + 16 if z < 0 else z for z in new_indices]
             else:
                 # Every index is added by 4 to get the new one
-                new_indices = map(lambda x: x+4, indices)
+                new_indices = map(lambda x: x + 4, indices)
                 new_indices = [z - 16 if z > 16 else z for z in new_indices]
             # Assigning of the values of the row to the original array
             for z, digit in zip(new_indices, temp_arr):
@@ -76,8 +76,7 @@ def mix_columns(block: List) -> List:
     [34, 119, 0, 85, 102, 51, 68, 17, 170, 255, 136, 221, 238, 187, 204, 153]
 
     """
-    return list(chain.from_iterable(mix_column(row)
-                                    for row in chunks(block, n=4)))
+    return list(chain.from_iterable(mix_column(row) for row in chunks(block, n=4)))
 
 
 def mix_columns_inv(block: List) -> Iterable:
@@ -88,8 +87,7 @@ def mix_columns_inv(block: List) -> Iterable:
     >>> mix_columns_inv(mix_columns(block)) == block
     True
     """
-    return list(chain.from_iterable(mix_column_inv(row)
-                                    for row in chunks(block, n=4)))
+    return list(chain.from_iterable(mix_column_inv(row) for row in chunks(block, n=4)))
 
 
 def add_roundkey(round_key: List, block: List) -> List:

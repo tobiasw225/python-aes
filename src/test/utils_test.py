@@ -2,7 +2,7 @@ from typing import List
 
 import requests
 
-from src.util import generate_nonce
+from utils import generate_nonce
 
 
 def assert_blocks_equal(block_a, block_b):

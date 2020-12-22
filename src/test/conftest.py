@@ -9,9 +9,9 @@ import tempfile
 
 import pytest
 
-from src.key_manager import expand_key
-from src.util import hex_digits_to_block
-from src.test.utils import get_random_wiki_articles
+from key_manager import expand_key
+from utils import hex_digits_to_block
+from test.utils_test import get_random_wiki_articles
 
 
 @pytest.fixture(scope="module")
