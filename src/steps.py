@@ -91,5 +91,7 @@ def mix_columns_inv(block: List) -> Iterable:
 
 
 def add_roundkey(round_key: List, block: List) -> List:
-    assert len(block) == len(round_key)
+    if len(block) != len(round_key):
+        print(len(block))
+        print(len(round_key))
     return [rk ^ b for rk, b in zip(round_key, block)]

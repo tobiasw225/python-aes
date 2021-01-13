@@ -48,24 +48,20 @@ def expand_key(key: List) -> List:
     """
     # initialize extended key with key-elements.
     c = 32
-    _key = [0] * 240
-    for i, k in enumerate(key):
-        _key[i] = k
-    key = _key
+    expanded_key = [0] * 240
+    expanded_key[:len(key)] = key
 
     while c < 240:
         # Copy the temporary variable.
-        word = key[c - 4 : c]
+        word = expanded_key[c - 4 : c]
         if c % 32 == 0:
             # Every eight sets, do a complex calculation.
             # (c % 32)-1 ~ i+1
             word = key_schedule_core(word, (c % 32) - 1)
         if c % 32 == 16:
             # For 256-bit keys, we add an extra sbox to the calculation.
-            # word = sbox[word]
             word = [sbox[i] for i in word]
-        key_row = key[c - 32 : c + 4 - 32]
-        # key[c : c + 4] = key[c - 32 : c + 4 - 32] ^ word
-        key[c : c + 4] = [k ^ w for k, w in zip(key_row, word)]
+        key_row = expanded_key[c - 32 : c + 4 - 32]
+        expanded_key[c : c + 4] = [k ^ w for k, w in zip(key_row, word)]
         c += 4
-    return key
+    return expanded_key
