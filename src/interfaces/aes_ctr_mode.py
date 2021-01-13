@@ -21,7 +21,8 @@ class AESCTR(AESInterface):
         self.ctr = 0
         # first half is for nonce, rest is for counter
         # todo other block-sizes
-        assert block_size == 16
+        if block_size != 16:
+            raise NotImplementedError("Blocksize != 16 are not supported yet.")
         self.block_size = block_size
         self._nonce = [0] * self.block_size
 
@@ -34,7 +35,9 @@ class AESCTR(AESInterface):
     def set_nonce(self, nonce):
         if type(nonce) is str:
             nonce = process_block(nonce)
-        assert len(nonce) * 2 == self.block_size
+
+        if len(nonce) * 2 != self.block_size:
+            raise ValueError(f"len(nonce)*2 should be twice the block size.")
         self._nonce[: self.block_size // 2] = nonce
 
 
@@ -92,7 +95,8 @@ class AESBytesCTR(AESCTR):
             fout.write(block_to_byte(_buffer))
 
     def encrypt(self, filename: str, output_file: str):
-        assert os.path.isfile(filename)
+        if not os.path.isfile(filename):
+            raise FileNotFoundError
         with open(output_file, "wb") as fout:
             for i, block in enumerate(blocks_of_file(filename)):
                 enc_nonce = encrypt(self.nonce(i), self.expanded_key)

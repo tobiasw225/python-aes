@@ -7,3 +7,5 @@ install:
 script:
   - cd src && python -m pytest src/test/
   - cd src && python -m doctest -v src/*.py
+  - cd src && python -m bandit -qr interfaces/
+  - cd src && python -m bandit -q *.py

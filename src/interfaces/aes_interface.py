@@ -16,7 +16,8 @@ import os
 from abc import ABC, abstractmethod
 
 from aes256 import decrypt, encrypt
-from utils import hex_string, process_block, hex_digits_to_block, chunks, remove_trailing_zero, block_to_byte, blocks_of_file, chr_decode, string_to_blocks
+from utils import hex_string, process_block, hex_digits_to_block, chunks, remove_trailing_zero, block_to_byte, \
+    blocks_of_file, chr_decode, string_to_blocks, random_ints
 from key_manager import expand_key
 
 
@@ -28,7 +29,7 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self._init_vector = [random.randint(0, 255) for _ in range(16)]
+        self._init_vector = list(random_ints(16, 0, 255))
 
     @property
     def init_vector(self):
@@ -89,7 +90,9 @@ class AESBytes(AESInterface):
         :param filename:
         :return:
         """
-        assert os.path.isfile(filename)
+        if not os.path.isfile(filename):
+            raise FileNotFoundError
+
         last_block = self.init_vector
         with open(output_file, "wb") as fout:
             for block in blocks_of_file(filename):

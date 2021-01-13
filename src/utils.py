@@ -95,7 +95,7 @@ def hex_string(block) -> str:
 
 
 def generate_nonce(d_type, block_size: int = 16):
-    my_nonce = list(random.randint(0, 255) for i in range(block_size))
+    my_nonce = list(random_ints(block_size, 0, 255))
     if d_type == "int":
         return my_nonce
     elif d_type == "str":
@@ -162,7 +162,8 @@ def fill_byte_block(block: Iterable, block_size: int) -> List:
 
 
 def blocks_of_file(filename: str, block_size: int = 16) -> List:
-    assert os.path.isfile(filename)
+    if not os.path.isfile(filename):
+        raise FileNotFoundError
     with open(file=filename, mode="rb") as fin:
         while block := fin.read(block_size):
             yield fill_byte_block(block, block_size)
@@ -177,3 +178,8 @@ def blocks_of_string(text: str, block_size: int = 16) -> List:
 def block_to_byte(block) -> bytes:
     b_block = [hex(number)[2:].zfill(2) for number in block]
     return binascii.unhexlify("".join(b_block))
+
+
+def random_ints(n: int, start: int = 0, stop: int = -1):
+    gen = random.SystemRandom()
+    yield (gen.randrange(start=start, stop=stop) for _ in range(n))
