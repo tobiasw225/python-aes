@@ -5,7 +5,8 @@ python:
 install:
   - "pip install -r requirements.txt"
 script:
-  - python -m pytest src/test/
-  - python -m doctest -v src/*.py
-  - python -m bandit -qr src/interfaces/
-  - python -m bandit -q src/*.py
+  - cd src
+  - python -m pytest test/
+  - python -m doctest -v *.py
+  - python -m bandit -qr interfaces/
+  - python -m bandit -q *.py

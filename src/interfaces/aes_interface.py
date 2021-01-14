@@ -29,7 +29,7 @@ class AESInterface(ABC):
     def __init__(self):
         self.expanded_key = None
         self.key = None
-        self._init_vector = list(random_ints(16, 0, 255))
+        self._init_vector = random_ints(16, 0, 255)
 
     @property
     def init_vector(self):
@@ -67,7 +67,11 @@ class AESString(AESInterface):
         last_block = self.init_vector
         blocks = string_to_blocks(text, block_size=16)
         for block in blocks:
+            print(block)
+            last_block =list(last_block)
+            print(last_block)
             block = [l ^ d for l, d in zip(block, last_block)]
+            print(last_block)
             last_block = encrypt(block, self.expanded_key)
             yield hex_string(last_block)
 

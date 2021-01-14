@@ -182,4 +182,4 @@ def block_to_byte(block) -> bytes:
 
 def random_ints(n: int, start: int = 0, stop: int = -1):
     gen = random.SystemRandom()
-    yield (gen.randrange(start=start, stop=stop) for _ in range(n))
+    return [gen.randrange(start=start, stop=stop) for _ in range(n)]
