@@ -11,7 +11,6 @@
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
-import random
 import os
 from abc import ABC, abstractmethod
 
@@ -20,7 +19,7 @@ from utils import hex_string, process_block, hex_digits_to_block, chunks, remove
     blocks_of_file, chr_decode, string_to_blocks, random_ints
 from key_manager import expand_key
 
-from src.utils import xor_blocks
+from utils import xor_blocks
 
 
 class AESInterface(ABC):

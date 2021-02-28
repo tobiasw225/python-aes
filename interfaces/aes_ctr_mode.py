@@ -1,5 +1,3 @@
-import os
-
 from typing import List
 
 from itertools import cycle
@@ -8,7 +6,7 @@ from aes256 import encrypt
 from interfaces.aes_interface import AESInterface
 from utils import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
 
-from src.utils import xor_blocks
+from utils import xor_blocks
 
 
 class CounterMode(AESInterface):

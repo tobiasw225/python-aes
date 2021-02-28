@@ -22,7 +22,6 @@ import os
 import random
 import re
 from functools import partial
-from itertools import cycle
 from typing import Iterable, List, Union, Any
 
 
@@ -120,7 +119,7 @@ def process_block(block: str) -> List[int]:
     :param block:
     :return:
     """
-    block = re.findall("..", block)
+    block = re.findall(r"..", block)
     return list(map(lambda x: int(x, 16), block))
 
 
