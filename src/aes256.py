@@ -12,7 +12,7 @@ from steps import add_roundkey, mix_columns, mix_columns_inv, shift_block
 from tables import sbox, sbox_inv
 
 
-def encrypt(block: List, expanded_key: List) -> List:
+def encrypt(block: List[int], expanded_key: List[int]) -> List[int]:
     """
     >>> key = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,\
      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,\
@@ -39,7 +39,7 @@ def encrypt(block: List, expanded_key: List) -> List:
     return block
 
 
-def decrypt(block: List, expanded_key: List) -> List:
+def decrypt(block: List[int], expanded_key: List[int]) -> List[int]:
     """
     >>> key = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,\
      11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,\

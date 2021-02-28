@@ -4,13 +4,13 @@ import filecmp
 from itertools import cycle
 
 from aes256 import encrypt
-from interfaces.aes_ctr_mode import AESStringCTR, AESBytesCTR
+from interfaces.aes_ctr_mode import StringCounterMode, ByteCounterMode
 from utils import text_blocks, hex_string
 from test.utils_test import sample_nonce
 
 
 def test_xor(test_string):
-    my_aes = AESStringCTR()
+    my_aes = StringCounterMode()
     my_aes.set_nonce(sample_nonce(8))
     nonce = my_aes.nonce(0)
     nonce = hex_string(nonce)
@@ -23,7 +23,7 @@ def test_xor(test_string):
 
 
 def test_enc_dec_step(test_string, hex_key):
-    my_aes = AESStringCTR()
+    my_aes = StringCounterMode()
     my_aes.set_key(hex_key)
     my_aes.set_nonce(sample_nonce(8))
     enc_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
@@ -42,7 +42,7 @@ def test_enc_dec_step(test_string, hex_key):
 
 
 def test_enc_dec_full(random_wiki_articles, hex_key):
-    my_aes = AESStringCTR()
+    my_aes = StringCounterMode()
     my_aes.set_key(hex_key)
     my_aes.set_nonce(sample_nonce(8))
     blocks = text_blocks(random_wiki_articles, block_size=16)
@@ -63,7 +63,7 @@ def test_enc_dec_full(random_wiki_articles, hex_key):
 
 
 def test_bytes_full(original_byte_file, hex_key):
-    my_aes = AESBytesCTR()
+    my_aes = ByteCounterMode()
     my_aes.set_key(hex_key)
     my_aes.set_nonce(sample_nonce(8))
     with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:

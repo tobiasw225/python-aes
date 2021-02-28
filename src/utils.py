@@ -23,11 +23,15 @@ import random
 import re
 from functools import partial
 from itertools import cycle
-from typing import Iterable, List
+from typing import Iterable, List, Union, Any
+
+
+def text_to_ord(text: str) -> List[int]:
+    return [ord(c) for c in text]
 
 
 def string_to_blocks(text: str, block_size: int) -> List:
-    return reshape_blocks(blocks=[ord(c) for c in text], block_size=block_size)
+    return reshape_blocks(blocks=text_to_ord(text), block_size=block_size)
 
 
 def text_blocks(text: str, block_size: int) -> str:
@@ -65,13 +69,17 @@ def chr_decode(c) -> str:
         return ""
 
 
-def ascii_file_to_blocks(filename: str) -> List:
+def xor_blocks(a: Iterable, b: Iterable) -> Iterable:
+    return [l ^ d for l, d in zip(a, b)]
+
+
+def ascii_file_to_blocks(filename: str) -> Iterable:
     with open(filename, "r") as fin:
         text = fin.read()
-    return reshape_blocks(blocks=[ord(c) for c in text])
+    return reshape_blocks(blocks=text_to_ord(text))
 
 
-def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> list:
+def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> List[int]:
     """
         letters to numbers
 
@@ -94,7 +102,7 @@ def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
 
 
-def generate_nonce(d_type, block_size: int = 16):
+def generate_nonce(d_type, block_size: int = 16) -> Union[List[int], str]:
     my_nonce = list(random_ints(block_size, 0, 255))
     if d_type == "int":
         return my_nonce
@@ -105,7 +113,7 @@ def generate_nonce(d_type, block_size: int = 16):
 rand_key = partial(generate_nonce, "str")
 
 
-def process_block(block: str) -> List:
+def process_block(block: str) -> List[int]:
     """
         splits the string in 2pairs
         ...
@@ -125,7 +133,7 @@ def hex_digits_to_block(key: str) -> List:
     return process_block(key)
 
 
-def chunks(blocks, n: int = 16) -> List:
+def chunks(blocks: Iterable, n: int = 16) -> Iterable:
     """
         Yield successive n-sized chunks from blocks.
 
@@ -134,20 +142,16 @@ def chunks(blocks, n: int = 16) -> List:
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i : i + n]
+        yield blocks[i: i + n]
 
 
-def xor(data: str, key: str) -> List:
-    return [a ^ b for (a, b) in zip(bytes(data, "utf-8"), cycle(bytes(key, "utf-8")))]
-
-
-def rstrip(value, my_list: list) -> List:
+def rstrip_value(value: Any, my_list: List[Any]) -> List[Any]:
     while my_list[-1] == value:
         my_list.pop(-1)
     return my_list
 
 
-remove_trailing_zero = partial(rstrip, 0)
+remove_trailing_zero = partial(rstrip_value, 0)
 
 
 """
@@ -162,14 +166,12 @@ def fill_byte_block(block: Iterable, block_size: int) -> List:
 
 
 def blocks_of_file(filename: str, block_size: int = 16) -> List:
-    if not os.path.isfile(filename):
-        raise FileNotFoundError
     with open(file=filename, mode="rb") as fin:
         while block := fin.read(block_size):
             yield fill_byte_block(block, block_size)
 
 
-def blocks_of_string(text: str, block_size: int = 16) -> List:
+def blocks_of_string(text: str, block_size: int = 16) -> bytes:
     text = bytes(text, "utf-8")
     for i, block in enumerate(chunks(text, n=block_size)):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
@@ -180,6 +182,6 @@ def block_to_byte(block) -> bytes:
     return binascii.unhexlify("".join(b_block))
 
 
-def random_ints(n: int, start: int = 0, stop: int = -1):
+def random_ints(n: int, start: int = 0, stop: int = -1) -> List[int]:
     gen = random.SystemRandom()
     return [gen.randrange(start=start, stop=stop) for _ in range(n)]

@@ -20,6 +20,8 @@ from utils import hex_string, process_block, hex_digits_to_block, chunks, remove
     blocks_of_file, chr_decode, string_to_blocks, random_ints
 from key_manager import expand_key
 
+from src.utils import xor_blocks
+
 
 class AESInterface(ABC):
     """
@@ -65,13 +67,9 @@ class AESString(AESInterface):
 
     def encrypt(self, text: str) -> str:
         last_block = self.init_vector
-        blocks = string_to_blocks(text, block_size=16)
-        for block in blocks:
-            print(block)
-            last_block =list(last_block)
-            print(last_block)
-            block = [l ^ d for l, d in zip(block, last_block)]
-            print(last_block)
+        for block in string_to_blocks(text, block_size=16):
+            last_block = list(last_block)
+            block = xor_blocks(block, last_block)
             last_block = encrypt(block, self.expanded_key)
             yield hex_string(last_block)
 
@@ -80,7 +78,7 @@ class AESString(AESInterface):
         blocks = process_block(text)
         for block in chunks(blocks):
             dec_block = decrypt(block, self.expanded_key)
-            last_block = [l ^ d for l, d in zip(last_block, dec_block)]
+            last_block = xor_blocks(last_block, dec_block)
             yield "".join([chr_decode(c) for c in last_block])
             last_block = block
 
@@ -101,7 +99,7 @@ class AESBytes(AESInterface):
         with open(output_file, "wb") as fout:
             for block in blocks_of_file(filename):
                 # cbc (comment out for ecb)
-                block = [l ^ d for l, d in zip(block, last_block)]
+                block = xor_blocks(block, last_block)
                 last_block = encrypt(block, self.expanded_key)
                 fout.write(block_to_byte(last_block))
 
@@ -118,7 +116,7 @@ class AESBytes(AESInterface):
             for block in blocks_of_file(filename):
                 dec_block = decrypt(block, self.expanded_key)
                 # cbc (comment out for ecb)
-                dec_block = [l ^ d for l, d in zip(last_block, dec_block)]
+                dec_block = xor_blocks(last_block, dec_block)
                 if _buffer is not None:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block

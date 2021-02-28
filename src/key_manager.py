@@ -16,7 +16,7 @@ from typing import List
 from tables import rcon, sbox
 
 
-def key_schedule_core(word: List, iteration: int) -> list:
+def key_schedule_core(word: List[int], iteration: int) -> List[int]:
     """
 
     :param word:
@@ -34,7 +34,7 @@ def key_schedule_core(word: List, iteration: int) -> list:
     return word
 
 
-def expand_key(key: List) -> List:
+def expand_key(key: List[int]) -> List[int]:
     """
     >>> key = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, \
     11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,\

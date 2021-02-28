@@ -1,11 +1,11 @@
 from itertools import chain
-from typing import Iterable, List
+from typing import List
 
 from tables import m2, m3, m9, m11, m13, m14
-from utils import chunks
+from utils import chunks, xor_blocks
 
 
-def shift_block(block: list, invert: bool = False) -> list:
+def shift_block(block: List[int], invert: bool = False) -> List[int]:
     """
     >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> shift_block(block)  # doctest: +NORMALIZE_WHITESPACE
@@ -46,12 +46,7 @@ def shift_block(block: list, invert: bool = False) -> list:
     return block
 
 
-"""
-    Mix columns
-"""
-
-
-def mix_column(col: list) -> list:
+def mix_column(col: List[int]) -> List[int]:
     return [
         m2[col[0]] ^ m3[col[1]] ^ col[2] ^ col[3],
         col[0] ^ m2[col[1]] ^ m3[col[2]] ^ col[3],
@@ -60,7 +55,7 @@ def mix_column(col: list) -> list:
     ]
 
 
-def mix_column_inv(col: list) -> list:
+def mix_column_inv(col: List[int]) -> List[int]:
     return [
         m14[col[0]] ^ m11[col[1]] ^ m13[col[2]] ^ m9[col[3]],
         m9[col[0]] ^ m14[col[1]] ^ m11[col[2]] ^ m13[col[3]],
@@ -69,7 +64,7 @@ def mix_column_inv(col: list) -> list:
     ]
 
 
-def mix_columns(block: List) -> List:
+def mix_columns(block: List[int]) -> List[int]:
     """
     >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> mix_columns(block)
@@ -79,7 +74,7 @@ def mix_columns(block: List) -> List:
     return list(chain.from_iterable(mix_column(row) for row in chunks(block, n=4)))
 
 
-def mix_columns_inv(block: List) -> Iterable:
+def mix_columns_inv(block: List[int]) -> List[int]:
     """
     >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> mix_columns_inv(block)
@@ -90,8 +85,5 @@ def mix_columns_inv(block: List) -> Iterable:
     return list(chain.from_iterable(mix_column_inv(row) for row in chunks(block, n=4)))
 
 
-def add_roundkey(round_key: List, block: List) -> List:
-    if len(block) != len(round_key):
-        print(len(block))
-        print(len(round_key))
-    return [rk ^ b for rk, b in zip(round_key, block)]
+def add_roundkey(round_key: List[int], block: List[int]) -> List[int]:
+    return xor_blocks(round_key, block)

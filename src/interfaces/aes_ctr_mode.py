@@ -8,8 +8,10 @@ from aes256 import encrypt
 from interfaces.aes_interface import AESInterface
 from utils import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
 
+from src.utils import xor_blocks
 
-class AESCTR(AESInterface):
+
+class CounterMode(AESInterface):
     def encrypt(self, *args, **kwargs):
         pass
 
@@ -41,7 +43,7 @@ class AESCTR(AESInterface):
         self._nonce[: self.block_size // 2] = nonce
 
 
-class AESStringCTR(AESCTR):
+class StringCounterMode(CounterMode):
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)
 
@@ -68,16 +70,14 @@ class AESStringCTR(AESCTR):
         for i, block in enumerate(text_blocks):
             dec_nonce = encrypt(self.nonce(i), self.expanded_key)
             dec_nonce = hex_string(dec_nonce)
-            dec_text = [
-                a ^ b for (a, b) in zip(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
-            ]
+            dec_text = xor_blocks(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
             # remove dangling elements.
             if 0 in dec_text:
                 dec_text = list(filter(None, dec_text))
             yield bytes(dec_text).decode()
 
 
-class AESBytesCTR(AESCTR):
+class ByteCounterMode(CounterMode):
     def __init__(self, block_size: int = 16):
         super().__init__(block_size)
 
@@ -86,19 +86,17 @@ class AESBytesCTR(AESCTR):
             _buffer = None
             for i, block in enumerate(blocks_of_file(filename)):
                 dec_nonce = encrypt(self.nonce(i), self.expanded_key)
-                dec_block = [a ^ b for (a, b) in zip(block, cycle(dec_nonce))]
+                dec_block = xor_blocks(block, cycle(dec_nonce))
                 # remove dangling elements.
-                if _buffer is not None:
+                if _buffer:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
             _buffer = remove_trailing_zero(_buffer)
             fout.write(block_to_byte(_buffer))
 
     def encrypt(self, filename: str, output_file: str):
-        if not os.path.isfile(filename):
-            raise FileNotFoundError
         with open(output_file, "wb") as fout:
             for i, block in enumerate(blocks_of_file(filename)):
                 enc_nonce = encrypt(self.nonce(i), self.expanded_key)
-                enc_block = [a ^ b for (a, b) in zip(block, cycle(enc_nonce))]
+                enc_block = xor_blocks(block, cycle(enc_nonce))
                 fout.write(block_to_byte(enc_block))

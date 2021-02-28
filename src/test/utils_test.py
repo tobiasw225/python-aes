@@ -1,13 +1,13 @@
 import random
 
-from typing import List
+from typing import List, Iterable
 
 import requests
 
 from utils import generate_nonce
 
 
-def assert_blocks_equal(block_a, block_b):
+def assert_blocks_equal(block_a: Iterable, block_b: Iterable):
     for a, b in zip(block_a, block_b):
         assert a == b
 
@@ -49,7 +49,7 @@ def get_random_wiki_articles(n: int):
         yield f"{article['title']}\n{article.get('extract', '')}"
 
 
-def sample_nonce(block_size: int) -> List:
+def sample_nonce(block_size: int) -> List[int]:
     nonce = [0] * block_size
     _nonce = generate_nonce(d_type="int", block_size=block_size // 2)
     for i, n in enumerate(_nonce):
