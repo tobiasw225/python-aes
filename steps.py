@@ -4,6 +4,10 @@ from typing import List
 from tables import m2, m3, m9, m11, m13, m14
 from utils import chunks, xor_blocks
 
+# todo make those parameters
+NUM_ROWS = 4
+BLOCK_SIZE = 16
+
 
 def shift_block(block: List[int], invert: bool = False) -> List[int]:
     """
@@ -17,33 +21,56 @@ def shift_block(block: List[int], invert: bool = False) -> List[int]:
     :param invert:
     :return:
     """
-    temp_arr, indices = [0] * 4, [0] * 4
     # Loop for Iteration of each row (2nd, 3rd, 4th)
-    for row in range(1, 4):
-        for i in range(row):
-            # Get the elements of the row
-            i = row
-            j = 0
-            while i < 16:
-                # save digits of block
-                # as well as positions
-                temp_arr[j] = block[i]
-                indices[j] = i
-                j += 1
-                i += 4
-
-            if not invert:
-                #  Every index is subtracted by 4 to get the new one
-                new_indices = map(lambda x: x - 4, indices)
-                new_indices = [z + 16 if z < 0 else z for z in new_indices]
-            else:
-                # Every index is added by 4 to get the new one
-                new_indices = map(lambda x: x + 4, indices)
-                new_indices = [z - 16 if z > 16 else z for z in new_indices]
-            # Assigning of the values of the row to the original array
-            for z, digit in zip(new_indices, temp_arr):
-                block[z] = digit
+    assert NUM_ROWS == 4
+    for row_number in range(1, NUM_ROWS):
+        # the second row does this once, the third twice, and so on.
+        for _ in range(row_number):
+            block = _shift_block(block, invert, row_number)
     return block
+
+
+def _shift_block(block: List[int], invert: bool, row_number: int) -> List[int]:
+    row, indices = get_row(block, row_number)
+    if not invert:
+        shifted_indices = shift_up_index_by_row(indices)
+    else:
+        shifted_indices = shift_down_index_by_row(indices)
+    # Assigning of the values of the row to the original array
+    for new_index, digit in zip(shifted_indices, row):
+        block[new_index] = digit
+    return block
+
+
+def get_row(block: List[int], i: int) -> (List[int], List[int]):
+    """
+    get values and indices of row with index i
+    comment: looks a little bit like columns, but I think this
+    does not matter.
+    """
+    row, indices = [0] * NUM_ROWS, [0] * NUM_ROWS
+    row_index = 0
+    block_index = i
+    while block_index < BLOCK_SIZE:
+        row[row_index] = block[block_index]
+        indices[row_index] = block_index
+        row_index += 1
+        block_index += NUM_ROWS
+    return row, indices
+
+
+def shift_down_index_by_row(indices: List[int]) -> List[int]:
+    new_indices = [x + NUM_ROWS for x in indices]
+    # Correct mistakes if the index overflows to the right.
+    new_indices = [x - BLOCK_SIZE if x > BLOCK_SIZE else x for x in new_indices]
+    return new_indices
+
+
+def shift_up_index_by_row(indices: List[int]) -> List[int]:
+    new_indices = [x - NUM_ROWS for x in indices]
+    # Correct mistakes if the index overflows to the right.
+    new_indices = [x + BLOCK_SIZE if x < 0 else x for x in new_indices]
+    return new_indices
 
 
 def mix_column(col: List[int]) -> List[int]:
@@ -69,9 +96,8 @@ def mix_columns(block: List[int]) -> List[int]:
     >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
     >>> mix_columns(block)
     [34, 119, 0, 85, 102, 51, 68, 17, 170, 255, 136, 221, 238, 187, 204, 153]
-
     """
-    return list(chain.from_iterable(mix_column(row) for row in chunks(block, n=4)))
+    return list(chain.from_iterable(mix_column(row) for row in chunks(block, n=NUM_ROWS)))
 
 
 def mix_columns_inv(block: List[int]) -> List[int]:
@@ -82,7 +108,7 @@ def mix_columns_inv(block: List[int]) -> List[int]:
     >>> mix_columns_inv(mix_columns(block)) == block
     True
     """
-    return list(chain.from_iterable(mix_column_inv(row) for row in chunks(block, n=4)))
+    return list(chain.from_iterable(mix_column_inv(row) for row in chunks(block, n=NUM_ROWS)))
 
 
 def add_roundkey(round_key: List[int], block: List[int]) -> List[int]:
