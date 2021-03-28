@@ -1,15 +1,12 @@
+from itertools import cycle
 from typing import List
 
-from itertools import cycle
-
-from aes256 import encrypt
-from interfaces.aes_interface import AESInterface
-from utils import blocks_of_string, block_to_byte, blocks_of_file, hex_string, process_block, remove_trailing_zero
-
-from utils import xor_blocks
+from implementation.aes256 import AESBase
+from utils import (block_to_byte, blocks_of_file, blocks_of_string, hex_string,
+                   process_block, remove_trailing_zero, xor_blocks)
 
 
-class CounterMode(AESInterface):
+class CounterMode(AESBase):
     def encrypt(self, *args, **kwargs):
         pass
 
@@ -48,7 +45,7 @@ class StringCounterMode(CounterMode):
     def encrypt(self, text: str) -> str:
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
-            enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+            enc_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
             enc_nonce = hex_string(enc_nonce)
             enc_block = [
                 a ^ b
@@ -66,7 +63,7 @@ class StringCounterMode(CounterMode):
         # b''.join(b) #todo
         # slicing possible
         for i, block in enumerate(text_blocks):
-            dec_nonce = encrypt(self.nonce(i), self.expanded_key)
+            dec_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
             dec_nonce = hex_string(dec_nonce)
             dec_text = xor_blocks(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
             # remove dangling elements.
@@ -83,7 +80,7 @@ class ByteCounterMode(CounterMode):
         with open(output_file, "wb") as fout:
             _buffer = None
             for i, block in enumerate(blocks_of_file(filename)):
-                dec_nonce = encrypt(self.nonce(i), self.expanded_key)
+                dec_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
                 dec_block = xor_blocks(block, cycle(dec_nonce))
                 # remove dangling elements.
                 if _buffer:
@@ -95,6 +92,6 @@ class ByteCounterMode(CounterMode):
     def encrypt(self, filename: str, output_file: str):
         with open(output_file, "wb") as fout:
             for i, block in enumerate(blocks_of_file(filename)):
-                enc_nonce = encrypt(self.nonce(i), self.expanded_key)
+                enc_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
                 enc_block = xor_blocks(block, cycle(enc_nonce))
                 fout.write(block_to_byte(enc_block))

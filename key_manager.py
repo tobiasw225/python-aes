@@ -14,6 +14,10 @@
 from typing import List
 
 from tables import rcon, sbox
+from utils import xor_blocks
+
+EXTENDED_KEY_SIZE = 240
+WORD_LEN = 4
 
 
 def key_schedule_core(word: List[int], iteration: int) -> List[int]:
@@ -27,10 +31,15 @@ def key_schedule_core(word: List[int], iteration: int) -> List[int]:
     # (shift left)
     word.append(word.pop(0))
     # apply sbox
-    word = [sbox[i] for i in word]
+    word = apply_sbox(word)
     # perform the rcon operation with i as the input,
     # and exclusive or the rcon output with the first byte of the output word
     word[0] ^= rcon[iteration]
+    return word
+
+
+def apply_sbox(word: List[int]):
+    word = [sbox[i] for i in word]
     return word
 
 
@@ -46,22 +55,25 @@ def expand_key(key: List[int]) -> List[int]:
     :param key:
     :return:
     """
+    original_key_len = len(key)
+    i = original_key_len
+    expanded_key = [0] * EXTENDED_KEY_SIZE
     # initialize extended key with key-elements.
-    c = 32
-    expanded_key = [0] * 240
-    expanded_key[:len(key)] = key
+    expanded_key[: len(key)] = key
 
-    while c < 240:
+    while i < EXTENDED_KEY_SIZE:
         # Copy the temporary variable.
-        word = expanded_key[c - 4 : c]
-        if c % 32 == 0:
+        word = expanded_key[i - WORD_LEN : i]
+        if i % original_key_len == 0:
             # Every eight sets, do a complex calculation.
-            # (c % 32)-1 ~ i+1
-            word = key_schedule_core(word, (c % 32) - 1)
-        if c % 32 == 16:
+            # this is like c + 1
+            iteration = (i % original_key_len) - 1
+            word = key_schedule_core(word, iteration)
+        if i % original_key_len == 16:
             # For 256-bit keys, we add an extra sbox to the calculation.
-            word = [sbox[i] for i in word]
-        key_row = expanded_key[c - 32 : c + 4 - 32]
-        expanded_key[c : c + 4] = [k ^ w for k, w in zip(key_row, word)]
-        c += 4
+            word = apply_sbox(word)
+        start_of_word = i - original_key_len
+        key_row = expanded_key[start_of_word : start_of_word + WORD_LEN]
+        expanded_key[i : i + WORD_LEN] = xor_blocks(key_row, word)
+        i += WORD_LEN
     return expanded_key

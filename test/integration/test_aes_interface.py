@@ -1,8 +1,7 @@
+import filecmp
 import tempfile
 
-import filecmp
-from interfaces.aes_interface import AESString
-from interfaces.aes_interface import AESBytes
+from implementation.aes256 import AESBytes, AESString
 
 
 def test_if_string_dec_equal_original(test_string, hex_key):

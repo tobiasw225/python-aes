@@ -1,6 +1,5 @@
 import random
-
-from typing import List, Iterable
+from typing import Iterable, List
 
 import requests
 
@@ -58,4 +57,8 @@ def sample_nonce(block_size: int) -> List[int]:
 
 
 def random_utf_word(k: int) -> str:
-    return "".join(random.choices(tuple(chr(i) for i in range(32, 100000) if chr(i).isprintable()), k=k))
+    return "".join(
+        random.choices(
+            tuple(chr(i) for i in range(32, 100000) if chr(i).isprintable()), k=k
+        )
+    )

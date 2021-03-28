@@ -7,5 +7,5 @@ install:
 script:
   - python -m pytest test/
   - python -m doctest -v *.py
-  - python -m bandit -qr interfaces/
+  - python -m bandit -qr implementation/
   - python -m bandit -q *.py

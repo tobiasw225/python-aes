@@ -1,12 +1,10 @@
-import tempfile
 import filecmp
-
+import tempfile
 from itertools import cycle
-
-from aes256 import encrypt
-from interfaces.aes_ctr_mode import StringCounterMode, ByteCounterMode
-from utils import text_blocks, hex_string
 from test.utils_test import sample_nonce
+
+from implementation.aes_ctr_mode import ByteCounterMode, StringCounterMode
+from utils import hex_string, text_blocks
 
 
 def test_xor(test_string):
@@ -26,13 +24,13 @@ def test_enc_dec_step(test_string, hex_key):
     my_aes = StringCounterMode()
     my_aes.set_key(hex_key)
     my_aes.set_nonce(sample_nonce(8))
-    enc_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
+    enc_nonce = my_aes.encrypt_block(my_aes.nonce(0), my_aes.expanded_key)
     enc_nonce = hex_string(enc_nonce)
     enc_block = [
         a ^ b
         for (a, b) in zip(bytes(test_string, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
     ]
-    dec_nonce = encrypt(my_aes.nonce(0), my_aes.expanded_key)
+    dec_nonce = my_aes.encrypt_block(my_aes.nonce(0), my_aes.expanded_key)
     dec_nonce = hex_string(dec_nonce)
     assert enc_nonce == dec_nonce
     dec_text = [
@@ -47,13 +45,13 @@ def test_enc_dec_full(random_wiki_articles, hex_key):
     my_aes.set_nonce(sample_nonce(8))
     blocks = text_blocks(random_wiki_articles, block_size=16)
     for i, block in enumerate(blocks):
-        enc_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
+        enc_nonce = my_aes.encrypt_block(my_aes.nonce(i), my_aes.expanded_key)
         enc_nonce = hex_string(enc_nonce)
         enc_block = [
             a ^ b
             for (a, b) in zip(bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
         ]
-        dec_nonce = encrypt(my_aes.nonce(i), my_aes.expanded_key)
+        dec_nonce = my_aes.encrypt_block(my_aes.nonce(i), my_aes.expanded_key)
         dec_nonce = hex_string(dec_nonce)
         assert enc_nonce == dec_nonce
         dec_text = [

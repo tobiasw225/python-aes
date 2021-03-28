@@ -18,11 +18,12 @@
 
 """
 import binascii
+import math
 import os
 import random
 import re
 from functools import partial
-from typing import Iterable, List, Union, Any
+from typing import Any, Iterable, List, Union
 
 
 def text_to_ord(text: str) -> List[int]:
@@ -78,7 +79,7 @@ def ascii_file_to_blocks(filename: str) -> Iterable:
     return reshape_blocks(blocks=text_to_ord(text))
 
 
-def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> List[int]:
+def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> List[List[int]]:
     """
         letters to numbers
 
@@ -141,7 +142,7 @@ def chunks(blocks: Iterable, n: int = 16) -> Iterable:
     :return:
     """
     for i in range(0, len(blocks), n):
-        yield blocks[i: i + n]
+        yield blocks[i : i + n]
 
 
 def rstrip_value(value: Any, my_list: List[Any]) -> List[Any]:
@@ -184,3 +185,8 @@ def block_to_byte(block) -> bytes:
 def random_ints(n: int, start: int = 0, stop: int = -1) -> List[int]:
     gen = random.SystemRandom()
     return [gen.randrange(start=start, stop=stop) for _ in range(n)]
+
+
+def get_block_size_and_num_rows(block) -> (int, int):
+    block_size = len(block)
+    return block_size, int(math.sqrt(block_size))

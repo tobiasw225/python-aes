@@ -1,17 +1,14 @@
 import secrets
-from contextlib import contextmanager
-
 import shutil
-
-import urllib.request
-
 import tempfile
+import urllib.request
+from contextlib import contextmanager
+from test.utils_test import get_random_wiki_articles, random_utf_word
 
 import pytest
 
 from key_manager import expand_key
 from utils import hex_digits_to_block
-from test.utils_test import get_random_wiki_articles, random_utf_word
 
 
 @pytest.fixture(scope="module")
@@ -22,6 +19,7 @@ def test_string():
 @pytest.fixture(scope="module")
 def test_utf_8_text():
     return " ".join(random_utf_word(k=i) for i in range(100))
+
 
 @contextmanager
 def download_test_file_handler(url: str):
@@ -66,7 +64,7 @@ def original_hebrew_file():
 
 @pytest.fixture(scope="module")
 def random_test_block():
-    return hex_digits_to_block(secrets.token_hex(32))
+    return hex_digits_to_block(secrets.token_hex(16))
 
 
 @pytest.fixture(scope="module")
