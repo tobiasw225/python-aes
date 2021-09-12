@@ -1,7 +1,5 @@
-import math
-
-from steps import BlockShifter, ColumnMixer, add_roundkey
-from utils import get_block_size_and_num_rows
+from base.steps import BlockShifter, ColumnMixer, add_roundkey
+from base.utils import get_block_size_and_num_rows
 
 
 def test_shift_blocks(random_test_block):

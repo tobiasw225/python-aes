@@ -1,8 +1,8 @@
 from test.utils_test import assert_blocks_equal
 
 from implementation.aes256 import AESBase
-from utils import (ascii_file_to_blocks, string_to_blocks,
-                   utf_text_file_to_blocks)
+from base.utils import (ascii_file_to_blocks, string_to_blocks,
+                        utf_text_file_to_blocks)
 
 
 def test_ascii_string(expanded_key, test_string):

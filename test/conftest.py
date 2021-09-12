@@ -7,8 +7,8 @@ from test.utils_test import get_random_wiki_articles, random_utf_word
 
 import pytest
 
-from key_manager import expand_key
-from utils import hex_digits_to_block
+from base.key_manager import expand_key
+from base.utils import hex_digits_to_block
 
 
 @pytest.fixture(scope="module")

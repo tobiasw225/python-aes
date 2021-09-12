@@ -11,18 +11,17 @@
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
-import math
 import os
 from abc import abstractmethod
 from typing import List
 
-from key_manager import expand_key
-from steps import BlockShifter, ColumnMixer, add_roundkey
-from tables import sbox, sbox_inv
-from utils import (block_to_byte, blocks_of_file, chr_decode, chunks,
-                   get_block_size_and_num_rows, hex_digits_to_block,
-                   hex_string, process_block, random_ints,
-                   remove_trailing_zero, string_to_blocks, xor_blocks)
+from base.key_manager import expand_key
+from base.steps import BlockShifter, ColumnMixer, add_roundkey
+from base.tables import sbox, sbox_inv
+from base.utils import (block_to_byte, blocks_of_file, chr_decode, chunks,
+                        get_block_size_and_num_rows, hex_digits_to_block,
+                        hex_string, process_block, random_ints,
+                        remove_trailing_zero, string_to_blocks, xor_blocks)
 
 
 class AESBase:

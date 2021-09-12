@@ -3,7 +3,7 @@ from typing import Iterable, List
 
 import requests
 
-from utils import generate_nonce
+from base.utils import generate_nonce
 
 
 def assert_blocks_equal(block_a: Iterable, block_b: Iterable):
