@@ -14,8 +14,9 @@ class CounterMode(AESBase):
         pass
 
     def __init__(self, block_size: int = 16):
-        """todo check: is this relevant?"""
-        super().__init__()
+        """todo check: is this relevant?
+        yes - this seems like a bug"""
+        super().__init__(block_size=block_size)
         self.ctr = 0
         # first half is for nonce, rest is for counter
         self.block_size = block_size

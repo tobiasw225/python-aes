@@ -13,7 +13,7 @@
 # Copyright (c) 2017 Tobias Wenzel
 import os
 from abc import abstractmethod
-from typing import List
+from typing import List, Iterable
 
 from base.key_manager import expand_key
 from base.steps import BlockShifter, ColumnMixer, add_roundkey
@@ -68,7 +68,7 @@ class AESBase:
     def decrypt(self, *args, **kwargs):
         pass
 
-    def encrypt_block(self, block: List[int], expanded_key: List[int]) -> List[int]:
+    def encrypt_block(self, block: Iterable[int], expanded_key: List[int]) -> List[int]:
         """
         >>> key = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,\
          10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,\
@@ -85,12 +85,14 @@ class AESBase:
         :param expanded_key:
         :return: encrypted array
         """
-        for i in range(15):
+        # todo check: this seems kind of random
+        target = len(block) - 1
+        for i in range(target):
             ri = expanded_key[i : i + self.block_size]
             if i != 0:
                 block = [sbox[z] for z in block]
                 block = self.block_shifter.shift(block)
-                if i != 14:
+                if i != target -1:
                     block = self.column_mixer.mix(block)
             block = add_roundkey(block=block, round_key=ri)
         return block
@@ -112,9 +114,11 @@ class AESBase:
         :param expanded_key:
         :return: decrypted array
         """
-        for i in range(14, -1, -1):
+        # todo check
+        target = len(block) - 2
+        for i in range(target, -1, -1):
             ri = expanded_key[i : i + self.block_size]
-            if i == 14:
+            if i == target:
                 block = add_roundkey(block=block, round_key=ri)
             else:
                 block = self.block_shifter.shift(block, invert=True)
@@ -126,14 +130,11 @@ class AESBase:
 
 
 class AESString(AESBase):
-    def __init__(self):
-        super().__init__()
 
     def encrypt(self, text: str) -> str:
         last_block = self.init_vector
         for block in string_to_blocks(text, block_size=self.block_size):
-            last_block = list(last_block)
-            block: List[int] = xor_blocks(block, last_block)
+            block = xor_blocks(block, last_block)
             last_block = self.encrypt_block(block, self.expanded_key)
             yield hex_string(last_block)
 
@@ -143,22 +144,13 @@ class AESString(AESBase):
         for block in chunks(blocks):
             dec_block = self.decrypt_block(block, self.expanded_key)
             last_block = xor_blocks(last_block, dec_block)
-            yield "".join([chr_decode(c) for c in last_block])
+            yield "".join(chr_decode(c) for c in last_block)
             last_block = block
 
 
 class AESBytes(AESBase):
+
     def encrypt(self, filename: str, output_file: str):
-        """
-            encrypts file block by block
-
-        :param output_file:
-        :param filename:
-        :return:
-        """
-        if not os.path.isfile(filename):
-            raise FileNotFoundError
-
         last_block = self.init_vector
         with open(output_file, "wb") as fout:
             for block in blocks_of_file(filename):
@@ -168,12 +160,6 @@ class AESBytes(AESBase):
                 fout.write(block_to_byte(last_block))
 
     def decrypt(self, filename: str, output_file: str):
-        """
-
-        :param filename:
-        :param output_file:
-        :return:
-        """
         last_block = self.init_vector
         with open(output_file, "wb") as fout:
             _buffer = None
@@ -185,6 +171,5 @@ class AESBytes(AESBase):
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
                 last_block = block
-            # last block: remove all trailing elements.
             _buffer = remove_trailing_zero(_buffer)
             fout.write(block_to_byte(_buffer))

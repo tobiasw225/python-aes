@@ -2,6 +2,7 @@ import secrets
 import shutil
 import tempfile
 import urllib.request
+from collections.abc import Callable
 from contextlib import contextmanager
 from test.utils_test import get_random_wiki_articles, random_utf_word
 
@@ -68,13 +69,15 @@ def random_test_block():
 
 
 @pytest.fixture(scope="module")
-def hex_key() -> str:
-    return secrets.token_hex(32)
+def hex_key() -> Callable:
+    def _hex_key(n: int) -> str:
+        return secrets.token_hex(n*2)
+    return _hex_key
 
 
 @pytest.fixture(scope="module")
 def key(hex_key):
-    return hex_digits_to_block(hex_key)
+    return hex_digits_to_block(hex_key(16))
 
 
 @pytest.fixture(scope="module")

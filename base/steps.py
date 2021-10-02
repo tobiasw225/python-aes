@@ -81,6 +81,7 @@ class ColumnMixer:
 
     @staticmethod
     def mix_column(col: List[int]) -> List[int]:
+        # todo hard coded
         return [
             m2[col[0]] ^ m3[col[1]] ^ col[2] ^ col[3],
             col[0] ^ m2[col[1]] ^ m3[col[2]] ^ col[3],
@@ -90,6 +91,7 @@ class ColumnMixer:
 
     @staticmethod
     def mix_column_inv(col: List[int]) -> List[int]:
+        # todo hard coded
         return [
             m14[col[0]] ^ m11[col[1]] ^ m13[col[2]] ^ m9[col[3]],
             m9[col[0]] ^ m14[col[1]] ^ m11[col[2]] ^ m13[col[3]],
@@ -110,12 +112,12 @@ class ColumnMixer:
             )
         )
 
-    def mix_invert(self, block: List[int]) -> List[int]:
+    def mix_invert(self, block: Iterable[int]) -> List[int]:
         """
         >>> column_mixer = ColumnMixer(num_rows=4, block_size=16)
         >>> block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
         >>> column_mixer.mix_invert(column_mixer.mix(block)) == block
-        Truew
+        True
         """
         return list(
             chain.from_iterable(

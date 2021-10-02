@@ -25,7 +25,7 @@ def test_xor(test_string, block_size):
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
 def test_enc_dec_step(test_string, hex_key, block_size):
     my_aes = StringCounterMode(block_size=block_size)
-    my_aes.set_key(hex_key)
+    my_aes.set_key(hex_key(block_size))
     my_aes.set_nonce(sample_nonce(block_size // 2))
     enc_nonce = my_aes.encrypt_block(my_aes.nonce(0), my_aes.expanded_key)
     enc_nonce = hex_string(enc_nonce)
@@ -44,7 +44,7 @@ def test_enc_dec_step(test_string, hex_key, block_size):
 
 def test_enc_dec_full(random_wiki_articles, hex_key):
     my_aes = StringCounterMode()
-    my_aes.set_key(hex_key)
+    my_aes.set_key(hex_key(16))
     my_aes.set_nonce(sample_nonce(8))
     blocks = text_blocks(random_wiki_articles, block_size=16)
     for i, block in enumerate(blocks):
@@ -65,7 +65,7 @@ def test_enc_dec_full(random_wiki_articles, hex_key):
 
 def test_ctr_mode_bytes_complete(original_byte_file, hex_key):
     my_aes = ByteCounterMode()
-    my_aes.set_key(hex_key)
+    my_aes.set_key(hex_key(16))
     my_aes.set_nonce(sample_nonce(8))
     with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file,\
             tempfile.NamedTemporaryFile() as dec_file:
@@ -77,7 +77,7 @@ def test_ctr_mode_bytes_complete(original_byte_file, hex_key):
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
 def test_ctr_mode_string_complete(test_string, hex_key, block_size):
     my_aes = StringCounterMode(block_size=block_size)
-    my_aes.set_key(hex_key)
+    my_aes.set_key(hex_key(block_size))
     my_aes.set_nonce(sample_nonce(block_size // 2))
     enc_text_blocks = list(my_aes.encrypt(test_string))
     dec_test = "".join([d for d in my_aes.decrypt(enc_text_blocks)])
