@@ -1,15 +1,11 @@
 import secrets
-import shutil
-import tempfile
-import urllib.request
 from collections.abc import Callable
-from contextlib import contextmanager
-from tests.utils_test import get_random_wiki_articles, random_utf_word
 
 import pytest
 
 from base.key_manager import expand_key
 from base.text_to_number_conversion import hex_digits_to_block
+from tests.utils_test import get_random_wiki_articles, random_utf_word
 
 
 @pytest.fixture(scope="module")
@@ -48,7 +44,8 @@ def random_test_block():
 @pytest.fixture(scope="module")
 def hex_key() -> Callable:
     def _hex_key(n: int) -> str:
-        return secrets.token_hex(n*2)
+        return secrets.token_hex(n * 2)
+
     return _hex_key
 
 

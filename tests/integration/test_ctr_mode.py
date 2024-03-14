@@ -1,11 +1,12 @@
-import pytest
 import filecmp
 import tempfile
 from itertools import cycle
-from tests.utils_test import sample_nonce
 
-from implementation.aes_ctr_mode import ByteCounterMode, StringCounterMode
+import pytest
+
 from base.text_to_number_conversion import hex_string, text_blocks
+from implementation.aes_ctr_mode import ByteCounterMode, StringCounterMode
+from tests.utils_test import sample_nonce
 
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
@@ -69,8 +70,7 @@ def test_ctr_mode_bytes_complete(original_byte_file, hex_key):
     my_aes = ByteCounterMode()
     my_aes.set_key(hex_key(16))
     my_aes.set_nonce(sample_nonce(8))
-    with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file,\
-            tempfile.NamedTemporaryFile() as dec_file:
+    with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
         my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
         my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
         assert filecmp.cmp(in_file.name, dec_file.name) is True

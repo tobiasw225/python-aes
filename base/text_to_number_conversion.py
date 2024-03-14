@@ -12,9 +12,8 @@
 # Created by Tobias Wenzel in December 2015
 # Copyright (c) 2015 Tobias Wenzel
 
-"""
+""" """
 
-"""
 import binascii
 import math
 import os
@@ -54,7 +53,9 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> List:
     start = 0
     while len(row := blocks[start : start + block_size]) == block_size:
         if any([e for e in row if e > 255]):
-            raise KnownBug(f"ord(c) with results higher than 255 are not possible: {row}, {start}")
+            raise KnownBug(
+                f"ord(c) with results higher than 255 are not possible: {row}, {start}"
+            )
         yield [0 if e > 256 else e for e in row]
         start += block_size
     # last row might not be full
@@ -73,7 +74,7 @@ def chr_decode(c) -> str:
 
 
 def xor_blocks(a: Iterable, b: Iterable) -> Iterable:
-    return [l ^ d for l, d in zip(a, b)]
+    return [l ^ d for l, d in zip(a, b)]  # noqa: E741
 
 
 def ascii_file_to_blocks(filename: str) -> Iterable:
@@ -131,7 +132,7 @@ def hex_digits_to_block(key: str) -> List:
     if os.path.isfile(key):
         with open(key, "r") as f:
             key = f.read()
-    elif type(key) is not str:
+    elif not isinstance(key, str):
         # todo better exception
         raise ValueError("Key must be valid path or str.")
     return process_block(key)

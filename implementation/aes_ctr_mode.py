@@ -1,9 +1,16 @@
 from itertools import cycle
 from typing import List
 
+from base.text_to_number_conversion import (
+    block_to_byte,
+    blocks_of_file,
+    blocks_of_string,
+    hex_string,
+    process_block,
+    remove_trailing_zero,
+    xor_blocks,
+)
 from implementation.aes256 import AESBase
-from base.text_to_number_conversion import (block_to_byte, blocks_of_file, blocks_of_string, hex_string,
-                                            process_block, remove_trailing_zero, xor_blocks)
 from implementation.exceptions import AESError
 
 
@@ -30,10 +37,10 @@ class CounterMode(AESBase):
         return _nonce
 
     def set_nonce(self, nonce):
-        if type(nonce) is str:
+        if isinstance(nonce, str):
             nonce = process_block(nonce)
         if len(nonce) * 2 != self.block_size:
-            raise AESError(f"len(nonce)*2 should be twice the block size.")
+            raise AESError("len(nonce)*2 should be twice the block size.")
         self._nonce[: self.block_size // 2] = nonce
 
 

@@ -11,17 +11,26 @@
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
-import os
 from abc import abstractmethod
-from typing import List, Iterable
+from typing import Iterable, List
 
 from base.key_manager import expand_key
 from base.steps import BlockShifter, ColumnMixer, add_roundkey
 from base.tables import sbox, sbox_inv
-from base.text_to_number_conversion import (block_to_byte, blocks_of_file, chr_decode, chunks,
-                                            get_block_size_and_num_rows, hex_digits_to_block,
-                                            hex_string, process_block, random_ints,
-                                            remove_trailing_zero, string_to_blocks, xor_blocks)
+from base.text_to_number_conversion import (
+    block_to_byte,
+    blocks_of_file,
+    chr_decode,
+    chunks,
+    get_block_size_and_num_rows,
+    hex_digits_to_block,
+    hex_string,
+    process_block,
+    random_ints,
+    remove_trailing_zero,
+    string_to_blocks,
+    xor_blocks,
+)
 
 
 class AESBase:
@@ -92,7 +101,7 @@ class AESBase:
             if i != 0:
                 block = [sbox[z] for z in block]
                 block = self.block_shifter.shift(block)
-                if i != target -1:
+                if i != target - 1:
                     block = self.column_mixer.mix(block)
             block = add_roundkey(block=block, round_key=ri)
         return block
@@ -130,7 +139,6 @@ class AESBase:
 
 
 class AESString(AESBase):
-
     def encrypt(self, text: str) -> str:
         last_block = self.init_vector
         for block in string_to_blocks(text, block_size=self.block_size):
@@ -149,7 +157,6 @@ class AESString(AESBase):
 
 
 class AESBytes(AESBase):
-
     def encrypt(self, filename: str, output_file: str):
         last_block = self.init_vector
         with open(output_file, "wb") as fout:

@@ -1,6 +1,7 @@
 import random
 
 import pytest
+
 from implementation.aes_ctr_mode import StringCounterMode
 from implementation.exceptions import AESError
 from tests.utils_test import sample_nonce
