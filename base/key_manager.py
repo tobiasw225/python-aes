@@ -14,7 +14,7 @@
 from typing import List
 
 from base.tables import rcon, sbox
-from base.utils import xor_blocks
+from base.text_to_number_conversion import xor_blocks
 
 EXTENDED_KEY_SIZE = 240
 WORD_LEN = 4

@@ -2,7 +2,8 @@ import random
 
 import pytest
 from implementation.aes_ctr_mode import StringCounterMode
-from test.utils_test import sample_nonce
+from implementation.exceptions import AESError
+from tests.utils_test import sample_nonce
 
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
@@ -17,5 +18,5 @@ def test_set_nonce_length_negative(hex_key, block_size):
     my_aes = StringCounterMode(block_size=block_size)
     my_aes.set_key(hex_key(block_size))
     invalid_nonce = sample_nonce(block_size * random.randint(1, 100))
-    with pytest.raises(ValueError):
+    with pytest.raises(AESError):
         my_aes.set_nonce(invalid_nonce)

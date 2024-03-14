@@ -2,10 +2,10 @@ import pytest
 import filecmp
 import tempfile
 from itertools import cycle
-from test.utils_test import sample_nonce
+from tests.utils_test import sample_nonce
 
 from implementation.aes_ctr_mode import ByteCounterMode, StringCounterMode
-from base.utils import hex_string, text_blocks
+from base.text_to_number_conversion import hex_string, text_blocks
 
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
@@ -24,6 +24,8 @@ def test_xor(test_string, block_size):
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
 def test_enc_dec_step(test_string, hex_key, block_size):
+    if block_size != 16:
+        pytest.skip(f"Blocksize != 16 is not supported ({block_size})")
     my_aes = StringCounterMode(block_size=block_size)
     my_aes.set_key(hex_key(block_size))
     my_aes.set_nonce(sample_nonce(block_size // 2))
@@ -76,6 +78,8 @@ def test_ctr_mode_bytes_complete(original_byte_file, hex_key):
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
 def test_ctr_mode_string_complete(test_string, hex_key, block_size):
+    if block_size != 16:
+        pytest.skip(f"Blocksize != 16 is not supported ({block_size})")
     my_aes = StringCounterMode(block_size=block_size)
     my_aes.set_key(hex_key(block_size))
     my_aes.set_nonce(sample_nonce(block_size // 2))

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: iso-8859-15 -*-
 #
-# __filename__: text_encoding.py
-#
 # __description__: Functions to convert the given Text to numbers
 #         and following that converting them to block of the
 #         size of 16 numbers
@@ -25,6 +23,8 @@ import re
 from functools import partial
 from typing import Any, Iterable, List, Union
 
+from implementation.exceptions import KnownBug
+
 
 def text_to_ord(text: str) -> List[int]:
     return [ord(c) for c in text]
@@ -43,9 +43,9 @@ def text_blocks(text: str, block_size: int) -> List[str]:
 
 def reshape_blocks(blocks: list, block_size: int = 16) -> List:
     """
-        reshape blocks from simple list
-        to list of lists and add a default-value
-        (whitespace : 32)
+    reshape blocks from simple list
+    to list of lists and add a default-value
+    (whitespace : 32)
 
     :param blocks:
     :param block_size:
@@ -53,13 +53,15 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> List:
     """
     start = 0
     while len(row := blocks[start : start + block_size]) == block_size:
-        yield row
+        if any([e for e in row if e > 255]):
+            raise KnownBug(f"ord(c) with results higher than 255 are not possible: {row}, {start}")
+        yield [0 if e > 256 else e for e in row]
         start += block_size
     # last row might not be full
     last_row = [32] * block_size
     for i in range(len(row)):
         last_row[i] = row[i]
-    yield last_row
+    yield [0 if e > 256 else e for e in row]
 
 
 def chr_decode(c) -> str:
@@ -103,7 +105,7 @@ def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
 
 
-def generate_nonce(d_type, block_size: int = 16) -> Union[List[int], str]:
+def generate_nonce(d_type: str, block_size: int = 16) -> Union[List[int], str]:
     my_nonce = list(random_ints(block_size, 0, 255))
     if d_type == "int":
         return my_nonce
