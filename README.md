@@ -2,9 +2,6 @@
 
 # python-aes
 
-![Tests](https://travis-ci.org/tobiasw225/python-aes.svg?branch=main
-)
-
 
 This is my simple implementation of the AES256 algorithm. 
 I initially implemented this project originally as part of the
