@@ -13,8 +13,8 @@
 # Copyright (c) 2015 Tobias Wenzel
 from typing import List
 
-from base.tables import rcon, sbox
-from base.text_to_number_conversion import xor_blocks
+from python_aes.tables import rcon, sbox
+from python_aes.text_to_number_conversion import xor_blocks
 
 EXTENDED_KEY_SIZE = 240
 WORD_LEN = 4

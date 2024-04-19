@@ -1,8 +1,8 @@
 from itertools import chain
 from typing import Iterable, List
 
-from base.tables import m2, m3, m9, m11, m13, m14
-from base.text_to_number_conversion import chunks, xor_blocks
+from python_aes.tables import m2, m3, m9, m11, m13, m14
+from python_aes.text_to_number_conversion import chunks, xor_blocks
 
 
 class BlockShifter:

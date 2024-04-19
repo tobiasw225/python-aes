@@ -4,8 +4,8 @@ from itertools import cycle
 
 import pytest
 
-from base.text_to_number_conversion import hex_string, text_blocks
-from implementation.aes_ctr_mode import ByteCounterMode, StringCounterMode
+from python_aes.text_to_number_conversion import hex_string, text_blocks
+from python_aes.aes_ctr_mode import ByteCounterMode, StringCounterMode
 from tests.utils_test import sample_nonce
 
 

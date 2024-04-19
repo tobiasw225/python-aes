@@ -3,8 +3,8 @@ from collections.abc import Callable
 
 import pytest
 
-from base.key_manager import expand_key
-from base.text_to_number_conversion import hex_digits_to_block
+from python_aes.key_manager import expand_key
+from python_aes.text_to_number_conversion import hex_digits_to_block
 from tests.utils_test import get_random_wiki_articles, random_utf_word
 
 

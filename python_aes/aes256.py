@@ -14,10 +14,10 @@
 from abc import abstractmethod
 from typing import Iterable, List
 
-from base.key_manager import expand_key
-from base.steps import BlockShifter, ColumnMixer, add_roundkey
-from base.tables import sbox, sbox_inv
-from base.text_to_number_conversion import (
+from python_aes.key_manager import expand_key
+from python_aes.steps import BlockShifter, ColumnMixer, add_roundkey
+from python_aes.tables import sbox, sbox_inv
+from python_aes.text_to_number_conversion import (
     block_to_byte,
     blocks_of_file,
     chr_decode,
@@ -60,8 +60,8 @@ class AESBase:
 
     def set_key(self, key: str):
         """
-            The key can be either a file (plain-text hex-digits)
-            or passed as string.
+        The key can be either a file (plain-text hex-digits)
+        or passed as string.
 
         :param key
         :return:

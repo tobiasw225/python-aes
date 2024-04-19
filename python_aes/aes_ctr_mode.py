@@ -1,7 +1,7 @@
 from itertools import cycle
 from typing import List
 
-from base.text_to_number_conversion import (
+from python_aes.text_to_number_conversion import (
     block_to_byte,
     blocks_of_file,
     blocks_of_string,
@@ -10,8 +10,8 @@ from base.text_to_number_conversion import (
     remove_trailing_zero,
     xor_blocks,
 )
-from implementation.aes256 import AESBase
-from implementation.exceptions import AESError
+from python_aes.aes256 import AESBase
+from python_aes.exceptions import AESError
 
 
 class CounterMode(AESBase):

@@ -22,7 +22,7 @@ import re
 from functools import partial
 from typing import Any, Iterable, List, Union
 
-from implementation.exceptions import KnownBug
+from python_aes.exceptions import KnownBug
 
 
 def text_to_ord(text: str) -> List[int]:

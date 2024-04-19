@@ -1,5 +1,5 @@
-from base.steps import BlockShifter, ColumnMixer, add_roundkey
-from base.text_to_number_conversion import get_block_size_and_num_rows
+from python_aes.steps import BlockShifter, ColumnMixer, add_roundkey
+from python_aes.text_to_number_conversion import get_block_size_and_num_rows
 
 
 def test_shift_blocks(random_test_block):

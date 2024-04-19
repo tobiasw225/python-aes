@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "python_aes"
+authors =  ["Tobias Wenzel <atobiasw225@gmail.com>"]
+description = "Fun implementation of AES"
+version = "0.0.1"
+readme = "README.md"
+packages = [{include = "python_aes"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "8.1.1"

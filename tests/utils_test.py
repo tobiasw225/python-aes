@@ -3,7 +3,7 @@ from typing import Iterable, List
 
 import requests
 
-from base.text_to_number_conversion import generate_nonce
+from python_aes.text_to_number_conversion import generate_nonce
 
 
 def assert_blocks_equal(block_a: Iterable, block_b: Iterable):
