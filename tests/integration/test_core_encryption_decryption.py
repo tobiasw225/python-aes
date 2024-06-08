@@ -1,9 +1,9 @@
+from python_aes.aes256 import AESBase
 from python_aes.text_to_number_conversion import (
     ascii_file_to_blocks,
     string_to_blocks,
     utf_text_file_to_blocks,
 )
-from python_aes.aes256 import AESBase
 from tests.utils_test import assert_blocks_equal
 
 
