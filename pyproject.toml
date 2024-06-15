@@ -7,5 +7,18 @@ readme = "README.md"
 packages = [{include = "python_aes"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
 pytest = "8.1.1"
+pytest-cov = "^5.0.0"
+requests = "2.32.3"
+
+[tool.poetry.group.lint]
+optional = true
+
+[tool.poetry.group.lint.dependencies]
+pre-commit = "3.7.1"
