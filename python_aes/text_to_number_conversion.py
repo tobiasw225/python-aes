@@ -20,27 +20,28 @@ import os
 import random
 import re
 from functools import partial
-from typing import Any, Iterable, List, Union
+from typing import Any, Iterable, List, AsyncGenerator, Generator
 
 from python_aes.exceptions import KnownBug
+import aiofiles
 
 
 def text_to_ord(text: str) -> List[int]:
     return [ord(c) for c in text]
 
 
-def string_to_blocks(text: str, block_size: int) -> List:
+def string_to_blocks(text: str, block_size: int) -> Generator[list[Any], Any, None]:
     return reshape_blocks(blocks=text_to_ord(text), block_size=block_size)
 
 
-def text_blocks(text: str, block_size: int) -> List[str]:
+def text_blocks(text: str, block_size: int) -> Generator[str, Any, None]:
     i = 0
     while i < len(text):
         yield "".join(text[i : i + block_size])
         i += block_size
 
 
-def reshape_blocks(blocks: list, block_size: int = 16) -> List:
+def reshape_blocks(blocks: list, block_size: int = 16) -> Generator[list, Any, None]:
     """
     reshape blocks from simple list
     to list of lists and add a default-value
@@ -83,7 +84,9 @@ def ascii_file_to_blocks(filename: str) -> Iterable:
     return reshape_blocks(blocks=text_to_ord(text))
 
 
-def utf_text_file_to_blocks(filename: str, encoding: str = "utf-8") -> List[List[int]]:
+def utf_text_file_to_blocks(
+    filename: str, encoding: str = "utf-8"
+) -> Generator[list[int], Any, None]:
     """
         letters to numbers
 
@@ -106,24 +109,18 @@ def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
 
 
-def generate_nonce(d_type: str, block_size: int = 16) -> Union[List[int], str]:
+def generate_nonce(d_type: type, block_size: int = 16) -> None | list[int] | str:
     my_nonce = list(random_ints(block_size, 0, 255))
-    if d_type == "int":
+    if d_type is int:
         return my_nonce
-    elif d_type == "str":
-        return hex_string(my_nonce)
+    return hex_string(my_nonce)
 
 
-rand_key = partial(generate_nonce, "str")
+rand_key = partial(generate_nonce, str)
 
 
 def process_block(block: str) -> List[int]:
-    """
-        splits the string in 2pairs
-        ...
-    :param block:
-    :return:
-    """
+    """splits the string in 2pairs"""
     block = re.findall(r"..", block)
     return list(map(lambda x: int(x, 16), block))
 
@@ -170,13 +167,15 @@ def fill_byte_block(block: Iterable, block_size: int) -> List:
     return block
 
 
-def blocks_of_file(filename: str, block_size: int = 16) -> List:
-    with open(file=filename, mode="rb") as fin:
-        while block := fin.read(block_size):
+async def blocks_of_file(
+    filename: str, block_size: int = 16
+) -> AsyncGenerator[list, Any]:
+    async with aiofiles.open(filename, mode="rb") as fin:
+        while block := await fin.read(block_size):
             yield fill_byte_block(block, block_size)
 
 
-def blocks_of_string(text: str, block_size: int = 16) -> bytes:
+def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any, None]:
     text = bytes(text, "utf-8")
     for i, block in enumerate(chunks(text, n=block_size)):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")

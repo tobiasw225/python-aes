@@ -50,7 +50,7 @@ def get_random_wiki_articles(n: int):
 
 def sample_nonce(block_size: int) -> List[int]:
     nonce = [0] * block_size
-    _nonce = generate_nonce(d_type="int", block_size=block_size // 2)
+    _nonce = generate_nonce(d_type=int, block_size=block_size // 2)
     for i, n in enumerate(_nonce):
         nonce[i] = n
     return nonce
