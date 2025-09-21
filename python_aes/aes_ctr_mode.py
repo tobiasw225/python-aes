@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import List
+from typing import List, Any, Generator
 
 from python_aes.aes256 import AESBase
 from python_aes.exceptions import AESError
@@ -12,19 +12,14 @@ from python_aes.text_to_number_conversion import (
     remove_trailing_zero,
     xor_blocks,
 )
+from python_aes.utils import async_enumerate
 
 
 class CounterMode(AESBase):
-    def encrypt(self, *args, **kwargs):
-        pass
-
-    def decrypt(self, *args, **kwargs):
-        pass
-
-    def __init__(self, block_size: int = 16):
+    def __init__(self, key: str, block_size: int):
         """todo check: is this relevant?
         yes - this seems like a bug"""
-        super().__init__(block_size=block_size)
+        super().__init__(block_size=block_size, key=key)
         self.ctr = 0
         # first half is for nonce, rest is for counter
         self.block_size = block_size
@@ -45,13 +40,13 @@ class CounterMode(AESBase):
 
 
 class StringCounterMode(CounterMode):
-    def __init__(self, block_size: int = 16):
-        super().__init__(block_size)
+    def __init__(self, key: str, block_size: int):
+        super().__init__(block_size=block_size, key=key)
 
-    def encrypt(self, text: str) -> str:
+    def encrypt(self, text: str) -> Generator[bytes, Any, None]:
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
-            enc_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
+            enc_nonce = self.encrypt_block(self.nonce(i))
             enc_nonce = hex_string(enc_nonce)
             enc_block = [
                 a ^ b
@@ -61,15 +56,11 @@ class StringCounterMode(CounterMode):
             ]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: List[str]) -> str:
-        """
-        :param text_blocks: encrypted
-        :return:
-        """
+    def decrypt(self, text_blocks: List[str]) -> Generator[str, Any, None]:
         # b''.join(b) #todo
         # slicing possible
         for i, block in enumerate(text_blocks):
-            dec_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
+            dec_nonce = self.encrypt_block(self.nonce(i))
             dec_nonce = hex_string(dec_nonce)
             dec_text = xor_blocks(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
             # remove dangling elements.
@@ -79,14 +70,14 @@ class StringCounterMode(CounterMode):
 
 
 class ByteCounterMode(CounterMode):
-    def __init__(self, block_size: int = 16):
-        super().__init__(block_size)
+    def __init__(self, block_size: int, key: str):
+        super().__init__(block_size=block_size, key=key)
 
-    def decrypt(self, filename: str, output_file: str):
+    async def decrypt(self, filename: str, output_file: str):
         with open(output_file, "wb") as fout:
             _buffer = None
-            for i, block in enumerate(blocks_of_file(filename)):
-                dec_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
+            async for i, block in async_enumerate(blocks_of_file(filename)):
+                dec_nonce = self.encrypt_block(self.nonce(i))
                 dec_block = xor_blocks(block, cycle(dec_nonce))
                 # remove dangling elements.
                 if _buffer:
@@ -95,9 +86,9 @@ class ByteCounterMode(CounterMode):
             _buffer = remove_trailing_zero(_buffer)
             fout.write(block_to_byte(_buffer))
 
-    def encrypt(self, filename: str, output_file: str):
+    async def encrypt(self, filename: str, output_file: str):
         with open(output_file, "wb") as fout:
-            for i, block in enumerate(blocks_of_file(filename)):
-                enc_nonce = self.encrypt_block(self.nonce(i), self.expanded_key)
+            async for i, block in async_enumerate(blocks_of_file(filename)):
+                enc_nonce = self.encrypt_block(self.nonce(i))
                 enc_block = xor_blocks(block, cycle(enc_nonce))
                 fout.write(block_to_byte(enc_block))

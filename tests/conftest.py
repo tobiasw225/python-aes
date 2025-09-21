@@ -3,9 +3,15 @@ from collections.abc import Callable
 
 import pytest
 
+from python_aes.aes256 import DEFAULT_BLOCK_SIZE
 from python_aes.key_manager import expand_key
 from python_aes.text_to_number_conversion import hex_digits_to_block
 from tests.utils_test import get_random_wiki_articles, random_utf_word
+
+
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    monkeypatch.chdir(request.fspath.dirname)
 
 
 @pytest.fixture(scope="module")
@@ -18,22 +24,26 @@ def test_utf_8_text():
     return " ".join(random_utf_word(k=i) for i in range(100))
 
 
-@pytest.fixture(scope="module")
-def original_byte_file():
-    with open("tests/data/goodytwoshoes00newyiala_djvu.txt") as fin:
+@pytest.fixture()
+def original_byte_file(default_txt_file_name):
+    with open(default_txt_file_name) as fin:
         yield fin
 
 
-@pytest.fixture(scope="module")
-def original_txt_file():
-    with open("tests/data/goodytwoshoes00newyiala_djvu.txt") as fin:
-        yield fin
+@pytest.fixture(scope="session")
+def default_txt_file_name():
+    return "data/goodytwoshoes00newyiala_djvu.txt"
 
 
 @pytest.fixture(scope="module")
-def original_hebrew_file():
-    with open("tests/data/hebrtest.htm") as fin:
+def original_txt_file(default_txt_file_name):
+    with open(default_txt_file_name) as fin:
         yield fin
+
+
+@pytest.fixture(scope="session")
+def original_hebrew_file_name():
+    return "data/hebrtest.htm"
 
 
 @pytest.fixture(scope="module")
@@ -47,6 +57,11 @@ def hex_key() -> Callable:
         return secrets.token_hex(n * 2)
 
     return _hex_key
+
+
+@pytest.fixture()
+def default_hex_key(hex_key):
+    return hex_key(DEFAULT_BLOCK_SIZE)
 
 
 @pytest.fixture(scope="module")
