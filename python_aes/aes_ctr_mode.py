@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from itertools import cycle
-from typing import List, Any, Generator
+from typing import Any, Generator
 
 from python_aes.aes256 import AESBase
 from python_aes.exceptions import AESError
@@ -56,7 +57,7 @@ class StringCounterMode(CounterMode):
             ]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: List[str]) -> Generator[str, Any, None]:
+    def decrypt(self, text_blocks: Sequence[str]) -> Generator[str, Any, None]:
         # b''.join(b) #todo
         # slicing possible
         for i, block in enumerate(text_blocks):
