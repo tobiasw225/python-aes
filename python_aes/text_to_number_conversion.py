@@ -16,13 +16,11 @@
 
 import binascii
 import math
-import os
 import random
 import re
 from functools import partial
-from typing import Any, Iterable, List, AsyncGenerator, Generator
+from typing import Any, Sequence, List, AsyncGenerator, Generator, Iterable
 
-from python_aes.exceptions import KnownBug
 import aiofiles
 
 
@@ -30,7 +28,7 @@ def text_to_ord(text: str) -> List[int]:
     return [ord(c) for c in text]
 
 
-def string_to_blocks(text: str, block_size: int) -> Generator[list[Any], Any, None]:
+def string_to_blocks(text: str, block_size: int) -> Generator[Sequence, Any, None]:
     return reshape_blocks(blocks=text_to_ord(text), block_size=block_size)
 
 
@@ -41,7 +39,9 @@ def text_blocks(text: str, block_size: int) -> Generator[str, Any, None]:
         i += block_size
 
 
-def reshape_blocks(blocks: list, block_size: int = 16) -> Generator[list, Any, None]:
+def reshape_blocks(
+    blocks: list, block_size: int = 16
+) -> Generator[Sequence, Any, None]:
     """
     reshape blocks from simple list
     to list of lists and add a default-value
@@ -54,7 +54,7 @@ def reshape_blocks(blocks: list, block_size: int = 16) -> Generator[list, Any, N
     start = 0
     while len(row := blocks[start : start + block_size]) == block_size:
         if any([e for e in row if e > 255]):
-            raise KnownBug(
+            raise NotImplementedError(
                 f"ord(c) with results higher than 255 are not possible: {row}, {start}"
             )
         yield [0 if e > 256 else e for e in row]
@@ -74,11 +74,11 @@ def chr_decode(c) -> str:
         return ""
 
 
-def xor_blocks(a: Iterable, b: Iterable) -> Iterable:
+def xor_blocks(a: Iterable, b: Iterable) -> Sequence:
     return [l ^ d for l, d in zip(a, b)]  # noqa: E741
 
 
-def ascii_file_to_blocks(filename: str) -> Iterable:
+def ascii_file_to_blocks(filename: str) -> Generator[Sequence, Any, None]:
     with open(filename, "r") as fin:
         text = fin.read()
     return reshape_blocks(blocks=text_to_ord(text))
@@ -126,23 +126,11 @@ def process_block(block: str) -> List[int]:
 
 
 def hex_digits_to_block(key: str) -> List:
-    if os.path.isfile(key):
-        with open(key, "r") as f:
-            key = f.read()
-    elif not isinstance(key, str):
-        # todo better exception
-        raise ValueError("Key must be valid path or str.")
     return process_block(key)
 
 
-def chunks(blocks: Iterable, n: int = 16) -> Iterable:
-    """
-        Yield successive n-sized chunks from blocks.
-
-    :param blocks:
-    :param n:
-    :return:
-    """
+def chunks(blocks: Sequence, n: int = 16) -> Generator[Sequence, Any, None]:
+    """Yield successive n-sized chunks from blocks."""
     for i in range(0, len(blocks), n):
         yield blocks[i : i + n]
 
@@ -161,7 +149,7 @@ remove_trailing_zero = partial(rstrip_value, 0)
 """
 
 
-def fill_byte_block(block: Iterable, block_size: int) -> List:
+def fill_byte_block(block: Sequence, block_size: int) -> List:
     block = [number for number in block]
     block.extend([0] * (block_size - len(block)))
     return block

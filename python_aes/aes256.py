@@ -7,18 +7,19 @@
 #
 # __remark__:
 #
-# __todos__:
 #
 # Created by Tobias Wenzel in December 2017
 # Copyright (c) 2017 Tobias Wenzel
 import asyncio
+from collections.abc import Sequence
 from concurrent.futures.process import ProcessPoolExecutor
-from typing import Iterable, Any, Generator
+from typing import Any, Generator, List, Iterable
 
 import aiofiles
 
 from python_aes.key_manager import expand_key
-from python_aes.steps import BlockShifter, ColumnMixer, add_roundkey
+from python_aes.row_shifter import shift
+from python_aes.column_mixer import mix_invert, mix
 from python_aes.tables import sbox, sbox_inv
 from python_aes.text_to_number_conversion import (
     block_to_byte,
@@ -48,12 +49,6 @@ class AESBase:
         self.key = None
         self._init_vector = random_ints(block_size, 0, 255)
         self.block_size, self.num_rows = get_block_size_and_num_rows(self._init_vector)
-        self.block_shifter = BlockShifter(
-            num_rows=self.num_rows, block_size=self.block_size
-        )
-        self.column_mixer = ColumnMixer(
-            num_rows=self.num_rows, block_size=self.block_size
-        )
 
     @property
     def init_vector(self):
@@ -65,15 +60,9 @@ class AESBase:
 
     @staticmethod
     def expand_key(key: str) -> list[int]:
-        """
-        The key can be either a file (plain-text hex-digits)
-        or passed as string.
-        # TODO: this is too obscure!
-        """
-        _key = hex_digits_to_block(key)
-        return expand_key(_key)
+        return expand_key(hex_digits_to_block(key))
 
-    def encrypt_block(self, block: Iterable[int]) -> Iterable[int]:
+    def encrypt_block(self, block: Sequence[int]) -> Sequence[int]:
         """
         >>> block = [  0,  17,  34,  51,  68,  85, 102, 119,\
          136, 153, 170, 187, 204, 221, 238, 255]
@@ -91,14 +80,17 @@ class AESBase:
         for i in range(target):
             ri = self.expanded_key[i : i + self.block_size]
             if i != 0:
-                block = [sbox[z] for z in block]
-                block = self.block_shifter.shift(block)
+                block = shift(
+                    block=[sbox[z] for z in block],
+                    num_rows=self.num_rows,
+                    block_size=self.block_size,
+                )
                 if i != target - 1:
-                    block = self.column_mixer.mix(block)
+                    block = mix(block=block, n=self.num_rows)
             block = add_roundkey(block=block, round_key=ri)
         return block
 
-    def decrypt_block(self, block: Iterable[int]) -> Iterable[int]:
+    def decrypt_block(self, block: Sequence[int]) -> Sequence[int]:
         """
         >>> enc = [  0,  17,  34,  51,  68,  85, 102, 119, 136,\
          153, 170, 187, 204, 221, 238, 255]
@@ -118,11 +110,15 @@ class AESBase:
             if i == target:
                 block = add_roundkey(block=block, round_key=ri)
             else:
-                block = self.block_shifter.shift(block, invert=True)
-                block = [sbox_inv[z] for z in block]
-                block = add_roundkey(block=block, round_key=ri)
+                block = shift(
+                    block,
+                    invert=True,
+                    num_rows=self.num_rows,
+                    block_size=self.block_size,
+                )
+                block = add_roundkey(block=[sbox_inv[z] for z in block], round_key=ri)
                 if i != 0:
-                    block = self.column_mixer.mix_invert(block)
+                    block = mix_invert(block, n=self.num_rows)
         return block
 
 
@@ -201,3 +197,7 @@ class AESBytesCBC(AESBase):
                 next_decrypted_block = dec_block
                 previous_block = block
             await fout.write(block_to_byte(remove_trailing_zero(next_decrypted_block)))
+
+
+def add_roundkey(round_key: List[int], block: List[int]) -> Iterable[int]:
+    return xor_blocks(round_key, block)

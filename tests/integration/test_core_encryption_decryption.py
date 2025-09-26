@@ -15,16 +15,6 @@ def test_ascii_string(default_hex_key, test_string):
     assert_blocks_equal(dec_blocks, blocks)
 
 
-# def test_utf_string(expanded_key, test_utf_8_text):
-#     # das geht irgendwie noch anders...
-#     blocks = [ord(x) for x in test_utf_8_text]
-#     blocks = reshape_blocks(blocks=blocks,
-#                             block_size=16)
-#     enc_blocks = [encrypt(block, expanded_key) for block in blocks]
-#     dec_blocks = [decrypt(block, expanded_key) for block in enc_blocks]
-#     assert_blocks_equal(dec_blocks, blocks)
-
-
 def test_ascii_file(default_hex_key, default_txt_file_name):
     aes = AESBase(key=default_hex_key)
     blocks = ascii_file_to_blocks(filename=default_txt_file_name)
