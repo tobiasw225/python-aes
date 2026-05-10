@@ -24,7 +24,7 @@ async def test_cbc_if_dec_byte_equal_original(small_txt_file_name, default_hex_k
 
 
 async def test_ecb_if_dec_byte_equal_original(
-    original_byte_file, default_hex_key, small_txt_file_name
+    default_hex_key, small_txt_file_name
 ):
     my_aes = AESBytesECB(key=default_hex_key)
     async with aiofiles.open(small_txt_file_name) as in_file:
