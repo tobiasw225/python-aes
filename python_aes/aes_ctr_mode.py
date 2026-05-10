@@ -84,8 +84,9 @@ class ByteCounterMode(CounterMode):
                 if _buffer:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
-            _buffer = remove_trailing_zero(_buffer)
-            fout.write(block_to_byte(_buffer))
+            if _buffer is not None:
+                _buffer = remove_trailing_zero(_buffer)
+                fout.write(block_to_byte(_buffer))
 
     async def encrypt(self, filename: str, output_file: str):
         with open(output_file, "wb") as fout:

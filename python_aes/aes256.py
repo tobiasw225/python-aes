@@ -173,7 +173,8 @@ class AESBytesECB(AESBase):
         async with aiofiles.open(output_file, mode="wb") as fout:
             for block in blocks[:-1]:
                 await fout.write(block_to_byte(block))
-            await fout.write(block_to_byte(remove_trailing_zero(blocks[-1])))
+            if blocks:
+                await fout.write(block_to_byte(remove_trailing_zero(blocks[-1])))
 
 
 class AESBytesCBC(AESBase):
@@ -196,7 +197,10 @@ class AESBytesCBC(AESBase):
                     await fout.write(block_to_byte(next_decrypted_block))
                 next_decrypted_block = dec_block
                 previous_block = block
-            await fout.write(block_to_byte(remove_trailing_zero(next_decrypted_block)))
+            if next_decrypted_block is not None:
+                await fout.write(
+                    block_to_byte(remove_trailing_zero(next_decrypted_block))
+                )
 
 
 def add_roundkey(round_key: List[int], block: List[int]) -> Iterable[int]:
