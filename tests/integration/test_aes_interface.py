@@ -10,7 +10,7 @@ async def test_if_string_dec_equal_original(test_string, default_hex_key):
     my_aes = AESString(key=default_hex_key)
     enc_blocks = my_aes.encrypt(test_string)
     enc = "".join(s for s in enc_blocks)
-    dec_string = "".join(s for s in my_aes.decrypt(enc)).rstrip()
+    dec_string = "".join(s for s in my_aes.decrypt(enc))
     assert test_string == dec_string
 
 
