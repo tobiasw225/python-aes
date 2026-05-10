@@ -197,11 +197,10 @@ class AESBytesCBC(AESBase):
                     await fout.write(block_to_byte(list(next_decrypted_block)))
                 next_decrypted_block = xored_block
                 previous_block = list(block)
-            if next_decrypted_block is None:
-                raise RuntimeError("No blocks were processed")
-            await fout.write(
-                block_to_byte(remove_trailing_zero(list(next_decrypted_block)))
-            )
+            if next_decrypted_block is not None:
+                await fout.write(
+                    block_to_byte(remove_trailing_zero(list(next_decrypted_block)))
+                )
 
 
 def add_roundkey(round_key: List[int], block: List[int]) -> List[int]:
