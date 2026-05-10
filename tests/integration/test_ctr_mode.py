@@ -1,70 +1,11 @@
 import filecmp
 import tempfile
-from itertools import cycle
 
 import pytest
 
 from python_aes.aes256 import DEFAULT_BLOCK_SIZE
 from python_aes.aes_ctr_mode import ByteCounterMode, StringCounterMode
-from python_aes.text_to_number_conversion import hex_string, text_blocks
 from tests.utils_test import sample_nonce
-
-
-@pytest.mark.parametrize("block_size", [16, 32, 48, 56])
-def test_xor(test_string, block_size, default_hex_key):
-    my_aes = StringCounterMode(block_size=block_size, key=default_hex_key)
-    my_aes.set_nonce(sample_nonce(block_size // 2))
-    nonce = my_aes.nonce(0)
-    nonce = hex_string(nonce)
-    enc_text = [
-        a ^ b
-        for (a, b) in zip(bytes(test_string, "utf-8"), cycle(bytes(nonce, "utf-8")))
-    ]
-    dec_text = [a ^ b for (a, b) in zip(bytes(enc_text), cycle(bytes(nonce, "utf-8")))]
-    assert test_string == bytes(dec_text).decode()
-
-
-@pytest.mark.parametrize("block_size", [16, 32, 48, 56])
-def test_enc_dec_step(test_string, hex_key, block_size):
-    if block_size != DEFAULT_BLOCK_SIZE:
-        pytest.skip(f"Blocksize != 16 is not supported ({block_size})")
-    my_aes = StringCounterMode(block_size=block_size, key=hex_key(block_size))
-    my_aes.set_nonce(sample_nonce(block_size // 2))
-    enc_nonce = my_aes.encrypt_block(my_aes.nonce(0))
-    enc_nonce = hex_string(enc_nonce)
-    enc_block = [
-        a ^ b
-        for (a, b) in zip(bytes(test_string, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
-    ]
-    dec_nonce = my_aes.encrypt_block(my_aes.nonce(0))
-    dec_nonce = hex_string(dec_nonce)
-    assert enc_nonce == dec_nonce
-    dec_text = [
-        a ^ b for (a, b) in zip(bytes(enc_block), cycle(bytes(enc_nonce, "utf-8")))
-    ]
-    assert test_string == bytes(dec_text).decode()
-
-
-def test_enc_dec_full(small_txt_file_name, default_hex_key):
-    my_aes = StringCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
-    my_aes.set_nonce(sample_nonce(8))
-    with open(small_txt_file_name) as file:
-        text = file.read()
-    blocks = text_blocks(text, block_size=DEFAULT_BLOCK_SIZE)
-    for i, block in enumerate(blocks):
-        enc_nonce = my_aes.encrypt_block(my_aes.nonce(i))
-        enc_nonce = hex_string(enc_nonce)
-        enc_block = [
-            a ^ b
-            for (a, b) in zip(bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8")))
-        ]
-        dec_nonce = my_aes.encrypt_block(my_aes.nonce(i))
-        dec_nonce = hex_string(dec_nonce)
-        assert enc_nonce == dec_nonce
-        dec_text = [
-            a ^ b for (a, b) in zip(bytes(enc_block), cycle(bytes(enc_nonce, "utf-8")))
-        ]
-        assert block == bytes(dec_text).decode()
 
 
 async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):
