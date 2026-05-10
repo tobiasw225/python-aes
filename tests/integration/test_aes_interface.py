@@ -32,3 +32,26 @@ async def test_ecb_if_dec_byte_equal_original(
             await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
             await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
             assert filecmp.cmp(in_file.name, dec_file.name) is True
+
+
+async def test_aes_string_empty_string(default_hex_key):
+    my_aes = AESString(key=default_hex_key)
+    enc = "".join(my_aes.encrypt(""))
+    dec_string = "".join(my_aes.decrypt(enc))
+    assert dec_string == ""
+
+
+async def test_aes_string_single_block(default_hex_key):
+    my_aes = AESString(key=default_hex_key)
+    text = "A" * my_aes.block_size
+    enc = "".join(my_aes.encrypt(text))
+    dec_string = "".join(my_aes.decrypt(enc))
+    assert dec_string == text
+
+
+async def test_aes_string_non_aligned(default_hex_key):
+    my_aes = AESString(key=default_hex_key)
+    text = "B" * (my_aes.block_size + 1)
+    enc = "".join(my_aes.encrypt(text))
+    dec_string = "".join(my_aes.decrypt(enc))
+    assert dec_string == text

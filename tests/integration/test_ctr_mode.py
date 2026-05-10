@@ -26,3 +26,32 @@ def test_ctr_mode_string_complete(test_string, hex_key, block_size):
     enc_text_blocks = list(my_aes.encrypt(test_string))
     dec_test = "".join([d for d in my_aes.decrypt(enc_text_blocks)])
     assert dec_test == test_string
+
+
+def test_ctr_mode_string_empty(hex_key):
+    my_aes = StringCounterMode(key=hex_key(16), block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    enc_blocks = list(my_aes.encrypt(""))
+    dec = "".join(my_aes.decrypt(enc_blocks))
+    assert dec == ""
+
+
+def test_ctr_mode_string_single_block(hex_key):
+    my_aes = StringCounterMode(key=hex_key(16), block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    text = "X" * DEFAULT_BLOCK_SIZE
+    enc_blocks = list(my_aes.encrypt(text))
+    dec = "".join(my_aes.decrypt(enc_blocks))
+    assert dec == text
+
+
+def test_ctr_mode_string_non_aligned(hex_key):
+    my_aes = StringCounterMode(key=hex_key(16), block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    text = "Z" * (DEFAULT_BLOCK_SIZE + 1)
+    enc_blocks = list(my_aes.encrypt(text))
+    dec = "".join(my_aes.decrypt(enc_blocks))
+    assert dec == text
+
+
+
