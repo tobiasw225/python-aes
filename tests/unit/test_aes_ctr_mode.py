@@ -4,7 +4,7 @@ import pytest
 
 from python_aes.aes_ctr_mode import StringCounterMode
 from python_aes.exceptions import AESError
-from tests.utils_test import sample_nonce
+from tests.test_utils import sample_nonce
 
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
