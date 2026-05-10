@@ -24,9 +24,12 @@ def test_ascii_file(default_hex_key, small_txt_file_name):
         assert a == b
 
 
-def test_utf8_file(default_hex_key, original_hebrew_file_name):
+def test_utf8_file(default_hex_key, tmp_path):
+    utf8_text = "日本語 עברית привет мир 😊 über"
+    data_file = tmp_path / "utf8_test.txt"
+    data_file.write_bytes(utf8_text.encode("utf-8"))
     aes = AESBase(key=default_hex_key)
-    original_blocks = list(utf_text_file_to_blocks(original_hebrew_file_name))
+    original_blocks = list(utf_text_file_to_blocks(str(data_file)))
     enc_blocks = [aes.encrypt_block(block) for block in original_blocks]
     dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
     for a, b in zip(dec_blocks, original_blocks):
