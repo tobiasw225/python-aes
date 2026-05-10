@@ -52,3 +52,39 @@ def test_ctr_mode_string_non_aligned(hex_key):
     enc_blocks = list(my_aes.encrypt(text))
     dec = "".join(my_aes.decrypt(enc_blocks))
     assert dec == text
+
+
+async def test_ctr_mode_bytes_empty(default_hex_key, tmp_path):
+    data_file = tmp_path / "empty.bin"
+    data_file.write_bytes(b"")
+    my_aes = ByteCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True
+
+
+async def test_ctr_mode_bytes_single_block(default_hex_key, tmp_path):
+    data_file = tmp_path / "single.bin"
+    data_file.write_bytes(b"X" * DEFAULT_BLOCK_SIZE)
+    my_aes = ByteCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True
+
+
+async def test_ctr_mode_bytes_binary_data(default_hex_key, tmp_path):
+    data_file = tmp_path / "binary.bin"
+    data_file.write_bytes(bytes(range(256)))
+    my_aes = ByteCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
+    my_aes.set_nonce(sample_nonce(8))
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True

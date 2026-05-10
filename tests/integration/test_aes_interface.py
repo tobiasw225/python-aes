@@ -53,3 +53,47 @@ async def test_aes_string_non_aligned(default_hex_key):
     enc = "".join(my_aes.encrypt(text))
     dec_string = "".join(my_aes.decrypt(enc))
     assert dec_string == text
+
+
+async def test_aes_bytes_ecb_empty_file(default_hex_key, tmp_path):
+    data_file = tmp_path / "empty.txt"
+    data_file.write_text("")
+    my_aes = AESBytesECB(key=default_hex_key)
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True
+
+
+async def test_aes_bytes_ecb_single_block(default_hex_key, tmp_path):
+    data_file = tmp_path / "single_block.txt"
+    data_file.write_bytes(b"A" * 16)
+    my_aes = AESBytesECB(key=default_hex_key)
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True
+
+
+async def test_aes_bytes_cbc_empty_file(default_hex_key, tmp_path):
+    data_file = tmp_path / "empty.txt"
+    data_file.write_text("")
+    my_aes = AESBytesCBC(key=default_hex_key)
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True
+
+
+async def test_aes_bytes_cbc_single_block(default_hex_key, tmp_path):
+    data_file = tmp_path / "single_block.txt"
+    data_file.write_bytes(b"B" * 16)
+    my_aes = AESBytesCBC(key=default_hex_key)
+    enc_file = tmp_path / "enc.bin"
+    dec_file = tmp_path / "dec.bin"
+    await my_aes.encrypt(filename=str(data_file), output_file=str(enc_file))
+    await my_aes.decrypt(filename=str(enc_file), output_file=str(dec_file))
+    assert filecmp.cmp(str(data_file), str(dec_file)) is True

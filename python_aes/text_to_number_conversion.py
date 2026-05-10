@@ -136,7 +136,7 @@ def chunks(blocks: Sequence, n: int = 16) -> Generator[Sequence, Any, None]:
 
 
 def rstrip_value(value: Any, my_list: List[Any]) -> List[Any]:
-    while my_list[-1] == value:
+    while my_list and my_list[-1] == value:
         my_list.pop(-1)
     return my_list
 
