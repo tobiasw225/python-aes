@@ -9,6 +9,18 @@ packages = [{include = "python_aes"}]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+ignore_missing_imports = true
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]
+
 [tool.poetry.dependencies]
 python = "^3.11"
 pytest-asyncio = "^1.2.0"
@@ -26,3 +38,6 @@ optional = true
 
 [tool.poetry.group.lint.dependencies]
 pre-commit = "3.7.1"
+mypy = "^1.9"
+bandit = "^1.7"
+types-aiofiles = "^24.1"

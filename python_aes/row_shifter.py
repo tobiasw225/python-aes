@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Tuple
 
 
-def _get_row(block: List[int], i: int, num_rows: int) -> (List[int], List[int]):
+def _get_row(block: List[int], i: int, num_rows: int) -> Tuple[List[int], List[int]]:
     """
     get values and indices of row with index i
     comment: looks a little bit like columns, but I think this

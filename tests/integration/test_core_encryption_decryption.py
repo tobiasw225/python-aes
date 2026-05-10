@@ -4,7 +4,7 @@ from python_aes.text_to_number_conversion import (
     string_to_blocks,
     utf_text_file_to_blocks,
 )
-from tests.utils_test import assert_blocks_equal
+from tests.aes_test_helpers import assert_blocks_equal
 
 
 def test_ascii_string(default_hex_key, test_string):

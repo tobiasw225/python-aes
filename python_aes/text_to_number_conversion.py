@@ -19,7 +19,7 @@ import math
 import random
 import re
 from functools import partial
-from typing import Any, Sequence, List, AsyncGenerator, Generator, Iterable
+from typing import Any, Sequence, List, AsyncGenerator, Generator, Iterable, Tuple
 
 import aiofiles
 
@@ -74,7 +74,7 @@ def chr_decode(c) -> str:
         return ""
 
 
-def xor_blocks(a: Iterable, b: Iterable) -> Sequence:
+def xor_blocks(a: Iterable, b: Iterable) -> List[int]:
     return [l ^ d for l, d in zip(a, b)]  # noqa: E741
 
 
@@ -121,8 +121,8 @@ rand_key = partial(generate_nonce, str)
 
 def process_block(block: str) -> List[int]:
     """splits the string in 2pairs"""
-    block = re.findall(r"..", block)
-    return list(map(lambda x: int(x, 16), block))
+    pairs = re.findall(r"..", block)
+    return list(map(lambda x: int(x, 16), pairs))
 
 
 def hex_digits_to_block(key: str) -> List:
@@ -164,8 +164,8 @@ async def blocks_of_file(
 
 
 def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any, None]:
-    text = bytes(text, "utf-8")
-    for i, block in enumerate(chunks(text, n=block_size)):
+    byte_text = bytes(text, "utf-8")
+    for i, block in enumerate(chunks(byte_text, n=block_size)):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
 
 
@@ -179,6 +179,6 @@ def random_ints(n: int, start: int = 0, stop: int = -1) -> List[int]:
     return [gen.randrange(start=start, stop=stop) for _ in range(n)]
 
 
-def get_block_size_and_num_rows(block) -> (int, int):
+def get_block_size_and_num_rows(block) -> Tuple[int, int]:
     block_size = len(block)
     return block_size, int(math.sqrt(block_size))
