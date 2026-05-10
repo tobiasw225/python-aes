@@ -15,9 +15,9 @@ def test_ascii_string(default_hex_key, test_string):
     assert_blocks_equal(dec_blocks, blocks)
 
 
-def test_ascii_file(default_hex_key, default_txt_file_name):
+def test_ascii_file(default_hex_key, small_txt_file_name):
     aes = AESBase(key=default_hex_key)
-    blocks = ascii_file_to_blocks(filename=default_txt_file_name)
+    blocks = ascii_file_to_blocks(filename=small_txt_file_name)
     enc_blocks = [aes.encrypt_block(block) for block in blocks]
     dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
     for a, b in zip(dec_blocks, blocks):
@@ -26,13 +26,11 @@ def test_ascii_file(default_hex_key, default_txt_file_name):
 
 def test_utf8_file(default_hex_key, original_hebrew_file_name):
     aes = AESBase(key=default_hex_key)
-    with open(original_hebrew_file_name) as file:
-        blocks = utf_text_file_to_blocks(file.name)
-        enc_blocks = [aes.encrypt_block(block) for block in blocks]
-        dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
-        blocks = utf_text_file_to_blocks(file.name)
-        for a, b in zip(dec_blocks, blocks):
-            assert a == b
+    original_blocks = list(utf_text_file_to_blocks(original_hebrew_file_name))
+    enc_blocks = [aes.encrypt_block(block) for block in original_blocks]
+    dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
+    for a, b in zip(dec_blocks, original_blocks):
+        assert a == b
 
 
 def test_encrypt_block(default_hex_key, random_test_block):

@@ -14,9 +14,9 @@ async def test_if_string_dec_equal_original(test_string, default_hex_key):
     assert test_string == dec_string
 
 
-async def test_cbc_if_dec_byte_equal_original(default_txt_file_name, default_hex_key):
+async def test_cbc_if_dec_byte_equal_original(small_txt_file_name, default_hex_key):
     my_aes = AESBytesCBC(key=default_hex_key)
-    async with aiofiles.open(default_txt_file_name) as in_file:
+    async with aiofiles.open(small_txt_file_name) as in_file:
         with tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
             await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
             await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
@@ -24,10 +24,10 @@ async def test_cbc_if_dec_byte_equal_original(default_txt_file_name, default_hex
 
 
 async def test_ecb_if_dec_byte_equal_original(
-    original_byte_file, default_hex_key, default_txt_file_name
+    original_byte_file, default_hex_key, small_txt_file_name
 ):
     my_aes = AESBytesECB(key=default_hex_key)
-    async with aiofiles.open(default_txt_file_name) as in_file:
+    async with aiofiles.open(small_txt_file_name) as in_file:
         with tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
             await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
             await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)

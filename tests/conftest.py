@@ -30,9 +30,20 @@ def original_byte_file(default_txt_file_name):
         yield fin
 
 
+@pytest.fixture()
+def small_byte_file(small_txt_file_name):
+    with open(small_txt_file_name) as fin:
+        yield fin
+
+
 @pytest.fixture(scope="session")
 def default_txt_file_name():
     return "data/goodytwoshoes00newyiala_djvu.txt"
+
+
+@pytest.fixture(scope="session")
+def small_txt_file_name():
+    return "data/small.txt"
 
 
 @pytest.fixture(scope="module")
