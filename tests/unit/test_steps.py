@@ -28,4 +28,5 @@ def test_mix_columns(random_test_block):
 
 
 def test_add_roundkey(random_test_block, key):
-    assert add_roundkey(random_test_block, key) == add_roundkey(key, random_test_block)
+    result = add_roundkey(random_test_block, key)
+    assert add_roundkey(result, key) == random_test_block
