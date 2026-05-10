@@ -52,6 +52,3 @@ def test_ctr_mode_string_non_aligned(hex_key):
     enc_blocks = list(my_aes.encrypt(text))
     dec = "".join(my_aes.decrypt(enc_blocks))
     assert dec == text
-
-
-

@@ -23,9 +23,7 @@ async def test_cbc_if_dec_byte_equal_original(small_txt_file_name, default_hex_k
             assert filecmp.cmp(in_file.name, dec_file.name) is True
 
 
-async def test_ecb_if_dec_byte_equal_original(
-    default_hex_key, small_txt_file_name
-):
+async def test_ecb_if_dec_byte_equal_original(default_hex_key, small_txt_file_name):
     my_aes = AESBytesECB(key=default_hex_key)
     async with aiofiles.open(small_txt_file_name) as in_file:
         with tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
