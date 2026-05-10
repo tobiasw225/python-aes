@@ -5,7 +5,7 @@ import pytest
 
 from python_aes.aes256 import DEFAULT_BLOCK_SIZE
 from python_aes.aes_ctr_mode import ByteCounterMode, StringCounterMode
-from tests.test_utils import sample_nonce
+from tests.aes_test_helpers import sample_nonce
 
 
 async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):

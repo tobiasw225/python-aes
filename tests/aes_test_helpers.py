@@ -10,7 +10,7 @@ def assert_blocks_equal(block_a: Iterable, block_b: Iterable):
 
 def sample_nonce(block_size: int) -> List[int]:
     nonce = [0] * block_size
-    _nonce = generate_nonce(d_type=int, block_size=block_size // 2)
+    _nonce: List[int] = generate_nonce(d_type=int, block_size=block_size // 2)  # type: ignore[assignment]
     for i, n in enumerate(_nonce):
         nonce[i] = n
     return nonce

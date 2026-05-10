@@ -11,7 +11,9 @@ def mix_invert(block: Iterable[int], n: int) -> List[int]:
     >>> mix_invert(mix(_block), n=4) == block
     True
     """
-    return list(chain.from_iterable(_mix_column_inv(row) for row in chunks(block, n=n)))
+    return list(
+        chain.from_iterable(_mix_column_inv(row) for row in chunks(list(block), n=n))
+    )
 
 
 def mix(block: Sequence[int], n: int) -> List[int]:

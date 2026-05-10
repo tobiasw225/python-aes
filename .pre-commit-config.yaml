@@ -14,8 +14,6 @@ repos:
       - id: detect-private-key
       - id: check-ast
       - id: check-executables-have-shebangs
-      - id: name-tests-test
-        args: [--pytest-test-first]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.2

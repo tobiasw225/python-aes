@@ -13,7 +13,7 @@
 import asyncio
 from collections.abc import Sequence
 from concurrent.futures.process import ProcessPoolExecutor
-from typing import Any, Generator, List, Iterable
+from typing import Any, Generator, List
 
 import aiofiles
 
@@ -62,7 +62,7 @@ class AESBase:
     def expand_key(key: str) -> list[int]:
         return expand_key(hex_digits_to_block(key))
 
-    def encrypt_block(self, block: Sequence[int]) -> Sequence[int]:
+    def encrypt_block(self, block: Sequence[int]) -> List[int]:
         """
         >>> block = [  0,  17,  34,  51,  68,  85, 102, 119,\
          136, 153, 170, 187, 204, 221, 238, 255]
@@ -75,7 +75,6 @@ class AESBase:
         :param block:
         :return: encrypted array
         """
-        # todo check: this seems kind of random
         target = len(block) - 1
         for i in range(target):
             ri = self.expanded_key[i : i + self.block_size]
@@ -87,10 +86,10 @@ class AESBase:
                 )
                 if i != target - 1:
                     block = mix(block=block, n=self.num_rows)
-            block = add_roundkey(block=block, round_key=ri)
-        return block
+            block = add_roundkey(block=list(block), round_key=list(ri))
+        return list(block)
 
-    def decrypt_block(self, block: Sequence[int]) -> Sequence[int]:
+    def decrypt_block(self, block: Sequence[int]) -> List[int]:
         """
         >>> enc = [  0,  17,  34,  51,  68,  85, 102, 119, 136,\
          153, 170, 187, 204, 221, 238, 255]
@@ -103,23 +102,24 @@ class AESBase:
         :param block:
         :return: decrypted array
         """
-        # todo check
         target = len(block) - 2
         for i in range(target, -1, -1):
             ri = self.expanded_key[i : i + self.block_size]
             if i == target:
-                block = add_roundkey(block=block, round_key=ri)
+                block = add_roundkey(block=list(block), round_key=list(ri))
             else:
                 block = shift(
-                    block,
+                    block=list(block),
                     invert=True,
                     num_rows=self.num_rows,
                     block_size=self.block_size,
                 )
-                block = add_roundkey(block=[sbox_inv[z] for z in block], round_key=ri)
+                block = add_roundkey(
+                    block=[sbox_inv[z] for z in block], round_key=list(ri)
+                )
                 if i != 0:
                     block = mix_invert(block, n=self.num_rows)
-        return block
+        return list(block)
 
 
 class AESString(AESBase):
@@ -155,7 +155,7 @@ class AESBytesECB(AESBase):
         blocks = await asyncio.gather(*tasks)
         async with aiofiles.open(output_file, mode="wb") as fout:
             for block in blocks:
-                await fout.write(block_to_byte(block))
+                await fout.write(block_to_byte(list(block)))
 
     async def decrypt(self, filename: str, output_file: str):
         loop = asyncio.get_running_loop()
@@ -172,36 +172,37 @@ class AESBytesECB(AESBase):
         blocks = await asyncio.gather(*tasks)
         async with aiofiles.open(output_file, mode="wb") as fout:
             for block in blocks[:-1]:
-                await fout.write(block_to_byte(block))
+                await fout.write(block_to_byte(list(block)))
             if blocks:
-                await fout.write(block_to_byte(remove_trailing_zero(blocks[-1])))
+                await fout.write(block_to_byte(remove_trailing_zero(list(blocks[-1]))))
 
 
 class AESBytesCBC(AESBase):
     async def encrypt(self, filename: str, output_file: str):
-        previous_block = self.init_vector
+        previous_block: List[int] = self.init_vector
         async with aiofiles.open(output_file, mode="wb") as fout:
             async for block in blocks_of_file(filename):
-                block = xor_blocks(block, previous_block)
-                previous_block = self.encrypt_block(block)
-                await fout.write(block_to_byte(previous_block))
+                xored: List[int] = xor_blocks(block, previous_block)
+                previous_block = self.encrypt_block(list(xored))
+                await fout.write(block_to_byte(list(previous_block)))
 
     async def decrypt(self, filename: str, output_file: str):
-        previous_block = self.init_vector
+        previous_block: List[int] = self.init_vector
+        next_decrypted_block: List[int] | None = None
         async with aiofiles.open(output_file, mode="wb") as fout:
-            next_decrypted_block = None
             async for block in blocks_of_file(filename):
-                dec_block = self.decrypt_block(block=block)
-                dec_block = xor_blocks(previous_block, dec_block)
+                dec_block = self.decrypt_block(list(block))
+                xored_block: List[int] = xor_blocks(previous_block, dec_block)
                 if next_decrypted_block is not None:
-                    await fout.write(block_to_byte(next_decrypted_block))
-                next_decrypted_block = dec_block
-                previous_block = block
-            if next_decrypted_block is not None:
-                await fout.write(
-                    block_to_byte(remove_trailing_zero(next_decrypted_block))
-                )
+                    await fout.write(block_to_byte(list(next_decrypted_block)))
+                next_decrypted_block = xored_block
+                previous_block = list(block)
+            if next_decrypted_block is None:
+                raise RuntimeError("No blocks were processed")
+            await fout.write(
+                block_to_byte(remove_trailing_zero(list(next_decrypted_block)))
+            )
 
 
-def add_roundkey(round_key: List[int], block: List[int]) -> Iterable[int]:
-    return xor_blocks(round_key, block)
+def add_roundkey(round_key: List[int], block: List[int]) -> List[int]:
+    return list(xor_blocks(round_key, block))

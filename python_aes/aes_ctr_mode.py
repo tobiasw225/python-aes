@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from itertools import cycle
-from typing import Any, Generator
+from typing import Any, Generator, List
 
 from python_aes.aes256 import AESBase
 from python_aes.exceptions import AESError
@@ -48,23 +48,17 @@ class StringCounterMode(CounterMode):
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
             enc_nonce = self.encrypt_block(self.nonce(i))
-            enc_nonce = hex_string(enc_nonce)
+            enc_nonce_bytes = [ord(c) for c in hex_string(enc_nonce)]
             enc_block = [
-                a ^ b
-                for (a, b) in zip(
-                    bytes(block, "utf-8"), cycle(bytes(enc_nonce, "utf-8"))
-                )
+                a ^ b for (a, b) in zip([ord(c) for c in block], cycle(enc_nonce_bytes))
             ]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: Sequence[str]) -> Generator[str, Any, None]:
-        # b''.join(b) #todo
-        # slicing possible
+    def decrypt(self, text_blocks: Sequence[bytes]) -> Generator[str, Any, None]:
         for i, block in enumerate(text_blocks):
             dec_nonce = self.encrypt_block(self.nonce(i))
-            dec_nonce = hex_string(dec_nonce)
-            dec_text = xor_blocks(bytes(block), cycle(bytes(dec_nonce, "utf-8")))
-            # remove dangling elements.
+            dec_nonce_bytes: List[int] = [ord(c) for c in hex_string(dec_nonce)]
+            dec_text = xor_blocks(list(block), cycle(dec_nonce_bytes))
             if 0 in dec_text:
                 dec_text = list(filter(None, dec_text))
             yield bytes(dec_text).decode()
