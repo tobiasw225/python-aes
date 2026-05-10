@@ -25,4 +25,4 @@ def test_ctr_mode_string_complete(test_string, hex_key, block_size):
     my_aes.set_nonce(sample_nonce(block_size // 2))
     enc_text_blocks = list(my_aes.encrypt(test_string))
     dec_test = "".join([d for d in my_aes.decrypt(enc_text_blocks)])
-    assert dec_test.strip() == test_string.strip()
+    assert dec_test == test_string
