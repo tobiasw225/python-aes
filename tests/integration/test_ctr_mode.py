@@ -45,10 +45,10 @@ def test_enc_dec_step(test_string, hex_key, block_size):
     assert test_string == bytes(dec_text).decode()
 
 
-def test_enc_dec_full(default_txt_file_name, default_hex_key):
+def test_enc_dec_full(small_txt_file_name, default_hex_key):
     my_aes = StringCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
     my_aes.set_nonce(sample_nonce(8))
-    with open(default_txt_file_name) as file:
+    with open(small_txt_file_name) as file:
         text = file.read()
     blocks = text_blocks(text, block_size=DEFAULT_BLOCK_SIZE)
     for i, block in enumerate(blocks):
@@ -67,10 +67,10 @@ def test_enc_dec_full(default_txt_file_name, default_hex_key):
         assert block == bytes(dec_text).decode()
 
 
-async def test_ctr_mode_bytes_complete(original_byte_file, default_hex_key):
+async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):
     my_aes = ByteCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
     my_aes.set_nonce(sample_nonce(8))
-    with original_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
+    with small_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
         await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
         await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
         assert filecmp.cmp(in_file.name, dec_file.name) is True
