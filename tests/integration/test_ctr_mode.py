@@ -11,7 +11,11 @@ from tests.aes_test_helpers import sample_nonce
 async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):
     my_aes = ByteCounterMode(key=default_hex_key, block_size=DEFAULT_BLOCK_SIZE)
     my_aes.set_nonce(sample_nonce(8))
-    with small_byte_file as in_file, tempfile.NamedTemporaryFile() as enc_file, tempfile.NamedTemporaryFile() as dec_file:
+    with (
+        small_byte_file as in_file,
+        tempfile.NamedTemporaryFile() as enc_file,
+        tempfile.NamedTemporaryFile() as dec_file,
+    ):  # noqa: E501
         await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
         await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
         assert filecmp.cmp(in_file.name, dec_file.name) is True
@@ -19,12 +23,12 @@ async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):
 
 @pytest.mark.parametrize("block_size", [16, 32, 48, 56])
 def test_ctr_mode_string_complete(test_string, hex_key, block_size):
-    if block_size != 16:
+    if block_size != DEFAULT_BLOCK_SIZE:
         pytest.skip(f"Blocksize != 16 is not supported ({block_size})")
     my_aes = StringCounterMode(block_size=block_size, key=hex_key(block_size))
     my_aes.set_nonce(sample_nonce(block_size // 2))
     enc_text_blocks = list(my_aes.encrypt(test_string))
-    dec_test = "".join([d for d in my_aes.decrypt(enc_text_blocks)])
+    dec_test = "".join(my_aes.decrypt(enc_text_blocks))
     assert dec_test == test_string
 
 

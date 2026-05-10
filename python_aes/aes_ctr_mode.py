@@ -1,6 +1,5 @@
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from itertools import cycle
-from typing import Any, Generator, List
 
 from python_aes.aes256 import AESBase
 from python_aes.exceptions import AESError
@@ -9,7 +8,6 @@ from python_aes.text_to_number_conversion import (
     blocks_of_file,
     blocks_of_string,
     hex_string,
-    process_block,
     remove_trailing_zero,
     xor_blocks,
 )
@@ -18,21 +16,18 @@ from python_aes.utils import async_enumerate
 
 class CounterMode(AESBase):
     def __init__(self, key: str, block_size: int):
-        """todo check: is this relevant?
-        yes - this seems like a bug"""
         super().__init__(block_size=block_size, key=key)
         self.ctr = 0
-        # first half is for nonce, rest is for counter
         self.block_size = block_size
         self._nonce = [0] * self.block_size
 
-    def nonce(self, i):
+    def nonce(self, i: int) -> list[int]:
         ctr = str(i).zfill(self.block_size // 2)
         _nonce = self._nonce
         _nonce[self.block_size // 2 :] = [ord(i) for i in ctr]
         return _nonce
 
-    def set_nonce(self, nonce):
+    def set_nonce(self, nonce: Sequence[int] | str) -> None:
         if isinstance(nonce, str):
             nonce = process_block(nonce)
         if len(nonce) * 2 != self.block_size:
@@ -40,11 +35,15 @@ class CounterMode(AESBase):
         self._nonce[: self.block_size // 2] = nonce
 
 
-class StringCounterMode(CounterMode):
-    def __init__(self, key: str, block_size: int):
-        super().__init__(block_size=block_size, key=key)
+def process_block(block: str) -> list[int]:
+    import re
 
-    def encrypt(self, text: str) -> Generator[bytes, Any, None]:
+    pairs = re.findall("..", block)
+    return [int(x, 16) for x in pairs]
+
+
+class StringCounterMode(CounterMode):
+    def encrypt(self, text: str) -> Generator[bytes, None, None]:
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
             enc_nonce = self.encrypt_block(self.nonce(i))
@@ -54,10 +53,10 @@ class StringCounterMode(CounterMode):
             ]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: Sequence[bytes]) -> Generator[str, Any, None]:
+    def decrypt(self, text_blocks: Sequence[bytes]) -> Generator[str, None, None]:
         for i, block in enumerate(text_blocks):
             dec_nonce = self.encrypt_block(self.nonce(i))
-            dec_nonce_bytes: List[int] = [ord(c) for c in hex_string(dec_nonce)]
+            dec_nonce_bytes: list[int] = [ord(c) for c in hex_string(dec_nonce)]
             dec_text = xor_blocks(list(block), cycle(dec_nonce_bytes))
             if 0 in dec_text:
                 dec_text = list(filter(None, dec_text))
@@ -74,7 +73,6 @@ class ByteCounterMode(CounterMode):
             async for i, block in async_enumerate(blocks_of_file(filename)):
                 dec_nonce = self.encrypt_block(self.nonce(i))
                 dec_block = xor_blocks(block, cycle(dec_nonce))
-                # remove dangling elements.
                 if _buffer:
                     fout.write(block_to_byte(_buffer))
                 _buffer = dec_block
