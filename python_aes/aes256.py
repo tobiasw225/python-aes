@@ -1,6 +1,7 @@
 import asyncio
-from collections.abc import Generator, Sequence
+from collections.abc import Sequence
 from concurrent.futures.process import ProcessPoolExecutor
+from typing import Any, Generator, List
 
 import aiofiles
 
@@ -27,6 +28,10 @@ DEFAULT_BLOCK_SIZE = 16
 
 
 class AESBase:
+    """
+    Interface for AES implementations Text & Byte
+    """
+
     def __init__(self, key: str, block_size: int = DEFAULT_BLOCK_SIZE):
         self.expanded_key: list[int] = self.expand_key(key)
         self.key = None
@@ -45,19 +50,18 @@ class AESBase:
     def expand_key(key: str) -> list[int]:
         return expand_key(hex_digits_to_block(key))
 
-    def encrypt_block(self, block: Sequence[int]) -> list[int]:
-        """Encrypt a single 16-byte block.
-
-        >>> b = list(range(16))
-        >>> k = "0" * 64
-        >>> crypter = AESBase(key=k)
-        >>> enc = crypter.encrypt_block(block=b)
+    def encrypt_block(self, block: Sequence[int]) -> List[int]:
+        """
+        >>> block = [  0,  17,  34,  51,  68,  85, 102, 119,\
+         136, 153, 170, 187, 204, 221, 238, 255]
+        >>> crypter = AESBase()
+        >>> enc = crypter.encrypt_block(block=block)
         >>> dec = crypter.decrypt_block(block=enc)
-        >>> dec == b
-        True
+        >>> print(dec.__repr__())
+        [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
 
-        :param block: input block to encrypt
-        :return: encrypted block
+        :param block:
+        :return: encrypted array
         """
         target = len(block) - 1
         for i in range(target):
@@ -73,18 +77,18 @@ class AESBase:
             block = add_roundkey(block=list(block), round_key=list(ri))
         return list(block)
 
-    def decrypt_block(self, block: Sequence[int]) -> list[int]:
-        """Decrypt a single 16-byte block.
-
-        >>> enc = list(range(16))
-        >>> k = "0" * 64
-        >>> aes = AESBase(key=k)
+    def decrypt_block(self, block: Sequence[int]) -> List[int]:
+        """
+        >>> enc = [  0,  17,  34,  51,  68,  85, 102, 119, 136,\
+         153, 170, 187, 204, 221, 238, 255]
+        >>> aes = AESBase()
         >>> dec = aes.decrypt_block(block=enc)
-        >>> aes.encrypt_block(block=dec) == enc
-        True
+        >>> enc = aes.encrypt_block(block=dec)
+        >>> print(enc.__repr__()) # doctest: +NORMALIZE_WHITESPACE
+        [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
 
-        :param block: encrypted block to decrypt
-        :return: decrypted block
+        :param block:
+        :return: decrypted array
         """
         target = len(block) - 2
         for i in range(target, -1, -1):
@@ -107,14 +111,14 @@ class AESBase:
 
 
 class AESString(AESBase):
-    def encrypt(self, text: str) -> Generator[str, None, None]:
+    def encrypt(self, text: str) -> Generator[str, Any, None]:
         previous_block = self.init_vector
-        for raw_block in string_to_blocks(text, block_size=self.block_size):
-            xor_block = xor_blocks(raw_block, previous_block)
-            previous_block = self.encrypt_block(xor_block)
+        for block in string_to_blocks(text, block_size=self.block_size):
+            block = xor_blocks(block, previous_block)
+            previous_block = self.encrypt_block(block)
             yield hex_string(previous_block)
 
-    def decrypt(self, text: str) -> Generator[str, None, None]:
+    def decrypt(self, text: str) -> Generator[str, Any, None]:
         previous_block = self.init_vector
         blocks = process_block(text)
         for block in chunks(blocks):
@@ -130,7 +134,11 @@ class AESBytesECB(AESBase):
         tasks = []
         with ProcessPoolExecutor() as pool:
             async for block in blocks_of_file(filename):
-                task = loop.run_in_executor(pool, self.encrypt_block, block)
+                task = loop.run_in_executor(
+                    pool,
+                    self.encrypt_block,
+                    block,
+                )
                 tasks.append(task)
         blocks = await asyncio.gather(*tasks)
         async with aiofiles.open(output_file, mode="wb") as fout:
@@ -142,7 +150,11 @@ class AESBytesECB(AESBase):
         tasks = []
         with ProcessPoolExecutor() as pool:
             async for block in blocks_of_file(filename):
-                task = loop.run_in_executor(pool, self.decrypt_block, block)
+                task = loop.run_in_executor(
+                    pool,
+                    self.decrypt_block,
+                    block,
+                )
                 tasks.append(task)
 
         blocks = await asyncio.gather(*tasks)
@@ -155,20 +167,20 @@ class AESBytesECB(AESBase):
 
 class AESBytesCBC(AESBase):
     async def encrypt(self, filename: str, output_file: str):
-        previous_block: list[int] = self.init_vector
+        previous_block: List[int] = self.init_vector
         async with aiofiles.open(output_file, mode="wb") as fout:
             async for block in blocks_of_file(filename):
-                xored: list[int] = xor_blocks(block, previous_block)
+                xored: List[int] = xor_blocks(block, previous_block)
                 previous_block = self.encrypt_block(list(xored))
                 await fout.write(block_to_byte(list(previous_block)))
 
     async def decrypt(self, filename: str, output_file: str):
-        previous_block: list[int] = self.init_vector
-        next_decrypted_block: list[int] | None = None
+        previous_block: List[int] = self.init_vector
+        next_decrypted_block: List[int] | None = None
         async with aiofiles.open(output_file, mode="wb") as fout:
             async for block in blocks_of_file(filename):
                 dec_block = self.decrypt_block(list(block))
-                xored_block: list[int] = xor_blocks(previous_block, dec_block)
+                xored_block: List[int] = xor_blocks(previous_block, dec_block)
                 if next_decrypted_block is not None:
                     await fout.write(block_to_byte(list(next_decrypted_block)))
                 next_decrypted_block = xored_block
@@ -179,5 +191,5 @@ class AESBytesCBC(AESBase):
                 )
 
 
-def add_roundkey(round_key: list[int], block: list[int]) -> list[int]:
+def add_roundkey(round_key: List[int], block: List[int]) -> List[int]:
     return list(xor_blocks(round_key, block))
