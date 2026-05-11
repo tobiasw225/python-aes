@@ -6,6 +6,12 @@ WORD_LEN = 4
 
 
 def key_schedule_core(word: list[int], iteration: int) -> list[int]:
+    """Apply key schedule core transformation.
+
+    :param word: word to transform
+    :param iteration: iteration number
+    :return: transformed word
+    """
     word.append(word.pop(0))
     word = apply_sbox(word)
     word[0] ^= rcon[iteration]
@@ -13,10 +19,21 @@ def key_schedule_core(word: list[int], iteration: int) -> list[int]:
 
 
 def apply_sbox(word: list[int]) -> list[int]:
+    """Apply S-box substitution to each byte in word."""
     return [sbox[i] for i in word]
 
 
 def expand_key(key: list[int]) -> list[int]:
+    """Expand the key for AES-256.
+
+    >>> k = list(range(32))
+    >>> res = expand_key(k)
+    >>> res[:32] == k
+    True
+
+    :param key: original key
+    :return: expanded key
+    """
     original_key_len = len(key)
     i = original_key_len
     expanded_key = [0] * EXTENDED_KEY_SIZE

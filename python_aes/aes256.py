@@ -46,6 +46,19 @@ class AESBase:
         return expand_key(hex_digits_to_block(key))
 
     def encrypt_block(self, block: Sequence[int]) -> list[int]:
+        """Encrypt a single 16-byte block.
+
+        >>> b = list(range(16))
+        >>> k = "0" * 64
+        >>> crypter = AESBase(key=k)
+        >>> enc = crypter.encrypt_block(block=b)
+        >>> dec = crypter.decrypt_block(block=enc)
+        >>> dec == b
+        True
+
+        :param block: input block to encrypt
+        :return: encrypted block
+        """
         target = len(block) - 1
         for i in range(target):
             ri = self.expanded_key[i : i + self.block_size]
@@ -61,6 +74,18 @@ class AESBase:
         return list(block)
 
     def decrypt_block(self, block: Sequence[int]) -> list[int]:
+        """Decrypt a single 16-byte block.
+
+        >>> enc = list(range(16))
+        >>> k = "0" * 64
+        >>> aes = AESBase(key=k)
+        >>> dec = aes.decrypt_block(block=enc)
+        >>> aes.encrypt_block(block=dec) == enc
+        True
+
+        :param block: encrypted block to decrypt
+        :return: decrypted block
+        """
         target = len(block) - 2
         for i in range(target, -1, -1):
             ri = self.expanded_key[i : i + self.block_size]

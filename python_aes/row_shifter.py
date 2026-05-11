@@ -1,4 +1,11 @@
 def _get_row(block: list[int], i: int, num_rows: int) -> tuple[list[int], list[int]]:
+    """Extract a row from the block at column index i.
+
+    :param block: the block to extract from
+    :param i: column index
+    :param num_rows: number of rows in the block
+    :return: tuple of (row values, their indices)
+    """
     row, indices = [0] * num_rows, [0] * num_rows
     row_index = 0
     block_index = i
@@ -14,6 +21,7 @@ def _get_row(block: list[int], i: int, num_rows: int) -> tuple[list[int], list[i
 def shift_down_index_by_row(
     indices: list[int], block_size: int, num_rows: int
 ) -> list[int]:
+    """Shift indices down by row (for inverse shift rows)."""
     new_indices = [x + num_rows for x in indices]
     return [x - block_size if x > block_size else x for x in new_indices]
 
@@ -21,6 +29,7 @@ def shift_down_index_by_row(
 def shift_up_index_by_row(
     indices: list[int], num_rows: int, block_size: int
 ) -> list[int]:
+    """Shift indices up by row (for forward shift rows)."""
     new_indices = [x - num_rows for x in indices]
     return [x + block_size if x < 0 else x for x in new_indices]
 
@@ -32,6 +41,7 @@ def _shift_block(
     num_rows: int,
     block_size: int,
 ) -> list[int]:
+    """Shift a single row in the block."""
     row, indices = _get_row(block, row_number, num_rows=num_rows)
     if not invert:
         shifted_indices = shift_up_index_by_row(
@@ -49,6 +59,14 @@ def _shift_block(
 def shift(
     block: list[int], num_rows: int, block_size: int, invert: bool = False
 ) -> list[int]:
+    """Shift rows in the block (MixColumns preparation).
+
+    >>> b = [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
+    >>> shift(b, num_rows=4, block_size=16)
+    [0, 85, 170, 255, 68, 153, 238, 51, 136, 221, 34, 119, 204, 17, 102, 187]
+    >>> shift(b, num_rows=4, block_size=16, invert=True) == b
+    True
+    """
     for row_number in range(1, num_rows):
         for _ in range(row_number):
             block = _shift_block(
