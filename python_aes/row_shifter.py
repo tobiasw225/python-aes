@@ -1,7 +1,4 @@
-from typing import List, Tuple
-
-
-def _get_row(block: List[int], i: int, num_rows: int) -> Tuple[List[int], List[int]]:
+def _get_row(block: list[int], i: int, num_rows: int) -> tuple[list[int], list[int]]:
     """
     get values and indices of row with index i
     comment: looks a little bit like columns, but I think this
@@ -20,26 +17,22 @@ def _get_row(block: List[int], i: int, num_rows: int) -> Tuple[List[int], List[i
 
 
 def shift_down_index_by_row(
-    indices: List[int], block_size: int, num_rows: int
-) -> List[int]:
+    indices: list[int], block_size: int, num_rows: int
+) -> list[int]:
     new_indices = [x + num_rows for x in indices]
-    # Correct mistakes if the index overflows to the right.
-    new_indices = [x - block_size if x > block_size else x for x in new_indices]
-    return new_indices
+    return [x - block_size if x > block_size else x for x in new_indices]
 
 
 def shift_up_index_by_row(
-    indices: List[int], num_rows: int, block_size: int
-) -> List[int]:
+    indices: list[int], num_rows: int, block_size: int
+) -> list[int]:
     new_indices = [x - num_rows for x in indices]
-    # Correct mistakes if the index overflows to the right.
-    new_indices = [x + block_size if x < 0 else x for x in new_indices]
-    return new_indices
+    return [x + block_size if x < 0 else x for x in new_indices]
 
 
 def _shift_block(
-    block: List[int], invert: bool, row_number: int, num_rows: int, block_size: int
-) -> List[int]:
+    block: list[int], invert: bool, row_number: int, num_rows: int, block_size: int
+) -> list[int]:
     row, indices = _get_row(block, row_number, num_rows=num_rows)
     if not invert:
         shifted_indices = shift_up_index_by_row(
@@ -50,20 +43,20 @@ def _shift_block(
             indices, num_rows=num_rows, block_size=block_size
         )
     # Assigning of the values of the row to the original array
-    for new_index, digit in zip(shifted_indices, row):
+    for new_index, digit in zip(shifted_indices, row, strict=False):
         block[new_index] = digit
     return block
 
 
 def shift(
-    block: List[int], num_rows: int, block_size: int, invert: bool = False
-) -> List[int]:
+    block: list[int], num_rows: int, block_size: int, invert: bool = False
+) -> list[int]:
     """
-    >>> _block = [  0,  17,  34,  51,  68,  85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-    >>> shift(_block)  # doctest: +NORMALIZE_WHITESPACE
+    >>> b = [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
+    >>> shift(b, num_rows=4, block_size=16)  # doctest: +NORMALIZE_WHITESPACE
     [0, 85, 170, 255, 68, 153, 238, 51, 136, 221, 34, 119, 204, 17, 102, 187]
-    >>> shift(_block, invert=True) # doctest: +NORMALIZE_WHITESPACE
-    [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
+    >>> shift(b, num_rows=4, block_size=16, invert=True) == b
+    True
 
     :param block_size:
     :param num_rows:
