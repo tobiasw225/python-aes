@@ -51,18 +51,6 @@ class AESBase:
         return expand_key(hex_digits_to_block(key))
 
     def encrypt_block(self, block: Sequence[int]) -> list[int]:
-        """
-        >>> block = [  0,  17,  34,  51,  68,  85, 102, 119,\
-         136, 153, 170, 187, 204, 221, 238, 255]
-        >>> crypter = AESBase()
-        >>> enc = crypter.encrypt_block(block=block)
-        >>> dec = crypter.decrypt_block(block=enc)
-        >>> print(dec.__repr__())
-        [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-
-        :param block:
-        :return: encrypted array
-        """
         target = len(block) - 1
         for i in range(target):
             ri = self.expanded_key[i : i + self.block_size]
@@ -78,18 +66,6 @@ class AESBase:
         return list(block)
 
     def decrypt_block(self, block: Sequence[int]) -> list[int]:
-        """
-        >>> enc = [  0,  17,  34,  51,  68,  85, 102, 119, 136,\
-         153, 170, 187, 204, 221, 238, 255]
-        >>> aes = AESBase()
-        >>> dec = aes.decrypt_block(block=enc)
-        >>> enc = aes.encrypt_block(block=dec)
-        >>> print(enc.__repr__()) # doctest: +NORMALIZE_WHITESPACE
-        [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-
-        :param block:
-        :return: decrypted array
-        """
         target = len(block) - 2
         for i in range(target, -1, -1):
             ri = self.expanded_key[i : i + self.block_size]

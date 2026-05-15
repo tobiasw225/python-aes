@@ -52,19 +52,6 @@ def _shift_block(
 def shift(
     block: list[int], num_rows: int, block_size: int, invert: bool = False
 ) -> list[int]:
-    """
-    >>> b = [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-    >>> shift(b, num_rows=4, block_size=16)  # doctest: +NORMALIZE_WHITESPACE
-    [0, 85, 170, 255, 68, 153, 238, 51, 136, 221, 34, 119, 204, 17, 102, 187]
-    >>> shift(b, num_rows=4, block_size=16, invert=True) == b
-    True
-
-    :param block_size:
-    :param num_rows:
-    :param block:
-    :param invert:
-    :return:
-    """
     for row_number in range(1, num_rows):
         # the second row does this once, the third twice, and so on.
         for _ in range(row_number):

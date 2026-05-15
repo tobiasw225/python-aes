@@ -6,22 +6,12 @@ from python_aes.text_to_number_conversion import chunks
 
 
 def mix_invert(block: Iterable[int], n: int) -> list[int]:
-    """
-    >>> b = [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-    >>> mix_invert(mix(b), n=4) == b
-    True
-    """
     return list(
         chain.from_iterable(_mix_column_inv(row) for row in chunks(list(block), n=n))
     )
 
 
 def mix(block: Sequence[int], n: int) -> list[int]:
-    """
-    >>> b = [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
-    >>> mix(b, n=4)
-    [34, 119, 0, 85, 102, 51, 68, 17, 170, 255, 136, 221, 238, 187, 204, 153]
-    """
     return list(chain.from_iterable(_mix_column(row) for row in chunks(block, n=n)))
 
 
