@@ -1,1 +1,2 @@
-class AESError(Exception): ...
+class AESError(Exception):
+    pass

@@ -20,7 +20,7 @@ def test_ascii_file(default_hex_key, small_txt_file_name):
     blocks = ascii_file_to_blocks(filename=small_txt_file_name)
     enc_blocks = [aes.encrypt_block(block) for block in blocks]
     dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
-    for a, b in zip(dec_blocks, blocks):
+    for a, b in zip(dec_blocks, blocks, strict=False):
         assert a == b
 
 
@@ -32,7 +32,7 @@ def test_utf8_file(default_hex_key, tmp_path):
     original_blocks = list(utf_text_file_to_blocks(str(data_file)))
     enc_blocks = [aes.encrypt_block(block) for block in original_blocks]
     dec_blocks = [aes.decrypt_block(block) for block in enc_blocks]
-    for a, b in zip(dec_blocks, original_blocks):
+    for a, b in zip(dec_blocks, original_blocks, strict=False):
         assert a == b
 
 

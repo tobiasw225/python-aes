@@ -1,30 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: iso-8859-15 -*-
-#
-# __description__: Functions to convert the given Text to numbers
-#         and following that converting them to block of the
-#         size of 16 numbers
-#
-#         Decoding Function which can be used to derive a text out of a given
-#         (decoded) block.
-#
-#
-# Created by Tobias Wenzel in December 2015
-# Copyright (c) 2015 Tobias Wenzel
-
 """ """
 
 import binascii
 import math
 import random
 import re
+from collections.abc import AsyncGenerator, Generator, Iterable, Sequence
 from functools import partial
-from typing import Any, Sequence, List, AsyncGenerator, Generator, Iterable, Tuple
+from typing import Any
 
 import aiofiles
 
 
-def text_to_ord(text: str) -> List[int]:
+def text_to_ord(text: str) -> list[int]:
     return [ord(c) for c in text]
 
 
@@ -51,19 +38,21 @@ def reshape_blocks(
     :param block_size:
     :return:
     """
+    max_byte = 255
+    max_val = 256
     start = 0
     while len(row := blocks[start : start + block_size]) == block_size:
-        if any([e for e in row if e > 255]):
+        if any(e for e in row if e > max_byte):
             raise NotImplementedError(
                 f"ord(c) with results higher than 255 are not possible: {row}, {start}"
             )
-        yield [0 if e > 256 else e for e in row]
+        yield [0 if e > max_val else e for e in row]
         start += block_size
     # last row might not be full
     last_row = [32] * block_size
     for i in range(len(row)):
         last_row[i] = row[i]
-    yield [0 if e > 256 else e for e in row]
+    yield [0 if e > max_val else e for e in row]
 
 
 def chr_decode(c) -> str:
@@ -74,12 +63,13 @@ def chr_decode(c) -> str:
         return ""
 
 
-def xor_blocks(a: Iterable, b: Iterable) -> List[int]:
-    return [l ^ d for l, d in zip(a, b)]  # noqa: E741
+def xor_blocks(a: Iterable, b: Iterable) -> list[int]:
+    # one blok can be longer than the other one
+    return [l ^ d for l, d in zip(a, b, strict=False)]  # noqa: E741
 
 
 def ascii_file_to_blocks(filename: str) -> Generator[Sequence, Any, None]:
-    with open(filename, "r") as fin:
+    with open(filename) as fin:
         text = fin.read()
     return reshape_blocks(blocks=text_to_ord(text))
 
@@ -98,7 +88,7 @@ def utf_text_file_to_blocks(
     with open(filename, "rb") as fin:
         while letters := fin.read(end):
             len_byte = len(letters)
-            content = [number for number in letters]
+            content = list(letters)
             if len_byte < end:
                 # when you have to fill up, it means you've reached eof
                 content.extend([0] * (end - len_byte))
@@ -109,23 +99,13 @@ def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
 
 
-def generate_nonce(d_type: type, block_size: int = 16) -> None | list[int] | str:
-    my_nonce = list(random_ints(block_size, 0, 255))
-    if d_type is int:
-        return my_nonce
-    return hex_string(my_nonce)
-
-
-rand_key = partial(generate_nonce, str)
-
-
-def process_block(block: str) -> List[int]:
+def process_block(block: str) -> list[int]:
     """splits the string in 2pairs"""
-    pairs = re.findall(r"..", block)
-    return list(map(lambda x: int(x, 16), pairs))
+    pairs = re.findall("..", block)
+    return [int(x, 16) for x in pairs]
 
 
-def hex_digits_to_block(key: str) -> List:
+def hex_digits_to_block(key: str) -> list:
     return process_block(key)
 
 
@@ -135,7 +115,7 @@ def chunks(blocks: Sequence, n: int = 16) -> Generator[Sequence, Any, None]:
         yield blocks[i : i + n]
 
 
-def rstrip_value(value: Any, my_list: List[Any]) -> List[Any]:
+def rstrip_value(value: Any, my_list: list[Any]) -> list[Any]:
     while my_list and my_list[-1] == value:
         my_list.pop(-1)
     return my_list
@@ -149,8 +129,8 @@ remove_trailing_zero = partial(rstrip_value, 0)
 """
 
 
-def fill_byte_block(block: Sequence, block_size: int) -> List:
-    block = [number for number in block]
+def fill_byte_block(block: Sequence, block_size: int) -> list:
+    block = list(block)
     block.extend([0] * (block_size - len(block)))
     return block
 
@@ -165,7 +145,7 @@ async def blocks_of_file(
 
 def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any, None]:
     byte_text = bytes(text, "utf-8")
-    for i, block in enumerate(chunks(byte_text, n=block_size)):
+    for block in chunks(byte_text, n=block_size):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
 
 
@@ -174,11 +154,11 @@ def block_to_byte(block) -> bytes:
     return binascii.unhexlify("".join(b_block))
 
 
-def random_ints(n: int, start: int = 0, stop: int = -1) -> List[int]:
+def random_ints(n: int, start: int = 0, stop: int = -1) -> list[int]:
     gen = random.SystemRandom()
     return [gen.randrange(start=start, stop=stop) for _ in range(n)]
 
 
-def get_block_size_and_num_rows(block) -> Tuple[int, int]:
+def get_block_size_and_num_rows(block) -> tuple[int, int]:
     block_size = len(block)
     return block_size, int(math.sqrt(block_size))
