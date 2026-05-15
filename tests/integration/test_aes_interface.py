@@ -20,7 +20,7 @@ async def test_cbc_if_dec_byte_equal_original(small_txt_file_name, default_hex_k
         with (
             tempfile.NamedTemporaryFile() as enc_file,
             tempfile.NamedTemporaryFile() as dec_file,
-        ):  # noqa: E501
+        ):
             await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
             await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
             assert filecmp.cmp(in_file.name, dec_file.name) is True
@@ -32,7 +32,7 @@ async def test_ecb_if_dec_byte_equal_original(default_hex_key, small_txt_file_na
         with (
             tempfile.NamedTemporaryFile() as enc_file,
             tempfile.NamedTemporaryFile() as dec_file,
-        ):  # noqa: E501
+        ):
             await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
             await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
             assert filecmp.cmp(in_file.name, dec_file.name) is True

@@ -64,6 +64,7 @@ def chr_decode(c) -> str:
 
 
 def xor_blocks(a: Iterable, b: Iterable) -> list[int]:
+    # one blok can be longer than the other one
     return [l ^ d for l, d in zip(a, b, strict=False)]  # noqa: E741
 
 
@@ -96,16 +97,6 @@ def utf_text_file_to_blocks(
 
 def hex_string(block) -> str:
     return "".join(str(format(sign, "02x")) for sign in block)
-
-
-def generate_nonce(d_type: type, block_size: int = 16) -> None | list[int] | str:
-    my_nonce = list(random_ints(block_size, 0, 255))
-    if d_type is int:
-        return my_nonce
-    return hex_string(my_nonce)
-
-
-rand_key = partial(generate_nonce, str)
 
 
 def process_block(block: str) -> list[int]:
@@ -154,7 +145,7 @@ async def blocks_of_file(
 
 def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any, None]:
     byte_text = bytes(text, "utf-8")
-    for _i, block in enumerate(chunks(byte_text, n=block_size)):
+    for block in chunks(byte_text, n=block_size):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")
 
 

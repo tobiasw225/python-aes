@@ -27,6 +27,7 @@ def shift_up_index_by_row(
     indices: list[int], num_rows: int, block_size: int
 ) -> list[int]:
     new_indices = [x - num_rows for x in indices]
+    # Correct mistakes if the index overflows to the right.
     return [x + block_size if x < 0 else x for x in new_indices]
 
 

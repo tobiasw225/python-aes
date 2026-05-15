@@ -15,7 +15,7 @@ async def test_ctr_mode_bytes_complete(small_byte_file, default_hex_key):
         small_byte_file as in_file,
         tempfile.NamedTemporaryFile() as enc_file,
         tempfile.NamedTemporaryFile() as dec_file,
-    ):  # noqa: E501
+    ):
         await my_aes.encrypt(filename=in_file.name, output_file=enc_file.name)
         await my_aes.decrypt(filename=enc_file.name, output_file=dec_file.name)
         assert filecmp.cmp(in_file.name, dec_file.name) is True

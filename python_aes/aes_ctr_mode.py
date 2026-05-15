@@ -1,3 +1,4 @@
+import re
 from collections.abc import Generator, Sequence
 from itertools import cycle
 
@@ -18,6 +19,7 @@ class CounterMode(AESBase):
     def __init__(self, key: str, block_size: int):
         super().__init__(block_size=block_size, key=key)
         self.ctr = 0
+        # first half is for nonce, rest is for counter
         self.block_size = block_size
         self._nonce = [0] * self.block_size
 
@@ -36,8 +38,6 @@ class CounterMode(AESBase):
 
 
 def process_block(block: str) -> list[int]:
-    import re
-
     pairs = re.findall("..", block)
     return [int(x, 16) for x in pairs]
 
