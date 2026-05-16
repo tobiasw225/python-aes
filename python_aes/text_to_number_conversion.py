@@ -15,20 +15,18 @@ def text_to_ord(text: str) -> list[int]:
     return [ord(c) for c in text]
 
 
-def string_to_blocks(text: str, block_size: int) -> Generator[Sequence, Any, None]:
+def string_to_blocks(text: str, block_size: int) -> Generator[Sequence, Any]:
     return reshape_blocks(blocks=text_to_ord(text), block_size=block_size)
 
 
-def text_blocks(text: str, block_size: int) -> Generator[str, Any, None]:
+def text_blocks(text: str, block_size: int) -> Generator[str, Any]:
     i = 0
     while i < len(text):
         yield "".join(text[i : i + block_size])
         i += block_size
 
 
-def reshape_blocks(
-    blocks: list, block_size: int = 16
-) -> Generator[Sequence, Any, None]:
+def reshape_blocks(blocks: list, block_size: int = 16) -> Generator[Sequence, Any]:
     """
     reshape blocks from simple list
     to list of lists and add a default-value
@@ -68,7 +66,7 @@ def xor_blocks(a: Iterable, b: Iterable) -> list[int]:
     return [l ^ d for l, d in zip(a, b, strict=False)]  # noqa: E741
 
 
-def ascii_file_to_blocks(filename: str) -> Generator[Sequence, Any, None]:
+def ascii_file_to_blocks(filename: str) -> Generator[Sequence, Any]:
     with open(filename) as fin:
         text = fin.read()
     return reshape_blocks(blocks=text_to_ord(text))
@@ -76,7 +74,7 @@ def ascii_file_to_blocks(filename: str) -> Generator[Sequence, Any, None]:
 
 def utf_text_file_to_blocks(
     filename: str, encoding: str = "utf-8"
-) -> Generator[list[int], Any, None]:
+) -> Generator[list[int], Any]:
     """
         letters to numbers
 
@@ -109,7 +107,7 @@ def hex_digits_to_block(key: str) -> list:
     return process_block(key)
 
 
-def chunks(blocks: Sequence, n: int = 16) -> Generator[Sequence, Any, None]:
+def chunks(blocks: Sequence, n: int = 16) -> Generator[Sequence, Any]:
     """Yield successive n-sized chunks from blocks."""
     for i in range(0, len(blocks), n):
         yield blocks[i : i + n]
@@ -143,7 +141,7 @@ async def blocks_of_file(
             yield fill_byte_block(block, block_size)
 
 
-def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any, None]:
+def blocks_of_string(text: str, block_size: int = 16) -> Generator[str, Any]:
     byte_text = bytes(text, "utf-8")
     for block in chunks(byte_text, n=block_size):
         yield bytes(fill_byte_block(block, block_size)).decode("utf-8")

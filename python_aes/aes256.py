@@ -87,14 +87,14 @@ class AESBase:
 
 
 class AESString(AESBase):
-    def encrypt(self, text: str) -> Generator[str, Any, None]:
+    def encrypt(self, text: str) -> Generator[str, Any]:
         previous_block = self.init_vector
         for raw_block in string_to_blocks(text, block_size=self.block_size):
             xored_block = xor_blocks(raw_block, previous_block)
             previous_block = self.encrypt_block(xored_block)
             yield hex_string(previous_block)
 
-    def decrypt(self, text: str) -> Generator[str, Any, None]:
+    def decrypt(self, text: str) -> Generator[str, Any]:
         previous_block = self.init_vector
         blocks = process_block(text)
         for block in chunks(blocks):
