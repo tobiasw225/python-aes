@@ -22,3 +22,35 @@ have. There are
 - `AESBytesCTR`(implementing Counter-Mode for file encryption)
 
 For usage of the classes have a look at the tests.
+
+## Release Process
+
+This project uses [Commitizen](https://commitizen-tools.github.io/) for automated versioning based on [Conventional Commits](https://www.conventionalcommits.org/).
+
+### Conventional Commit Format
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:**
+- `feat` - New feature (bumps minor version)
+- `fix` - Bug fix (bumps patch version)
+- `docs` - Documentation only
+- `style` - Code style changes
+- `refactor` - Code refactoring
+- `perf` - Performance improvement
+- `test` - Test changes
+- `chore` - Maintenance
+- `build` - Build system changes
+- `ci` - CI/CD changes
+- `revert` - Revert previous commit
+
+### Release Workflow
+1. Create a PR with conventional commits
+2. On merge to `main`, the version is automatically bumped
+3. An annotated tag (e.g., `v0.1.0`) is created

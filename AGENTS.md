@@ -21,7 +21,7 @@ Pure Python AES256 implementation (CBC and CTR modes). Educational project with 
 ## Workflow Rules
 
 **Formatting**
-- Only at end of tasks, not during implementation
+- Only at end of tasks, not during implementation. Use pre-commit for this.
 
 **Linting**
 - OK during tasks
