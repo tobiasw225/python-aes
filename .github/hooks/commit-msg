@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\(.+\))?: .+"
+
+MSG=$(cat)
+
+if ! echo "$MSG" | grep -qE "$PATTERN"; then
+    echo "Invalid commit message format."
+    echo "Expected: <type>(<scope>): <description>"
+    echo "Types: feat, fix, docs, style, refactor, perf, test, chore, build, ci, revert"
+    exit 1
+fi
+
+exit 0

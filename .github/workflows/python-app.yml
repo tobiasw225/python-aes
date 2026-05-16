@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.12
+    - name: Set up Python 3.14
       uses: actions/setup-python@v3
       with:
         python-version: "3.14"
@@ -36,3 +36,24 @@ jobs:
       run: |
         poetry install --with test
         poetry run pytest -vv --cov=python_aes --cov-report term --cov-report xml:coverage.xml tests
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: poetry install --with lint
+      - name: Bump version and create tag
+        run: |
+          poetry run cz bump --changelog
+          git push --follow-tags
