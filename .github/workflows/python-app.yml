@@ -60,6 +60,8 @@ jobs:
         run: |
           git config user.email "tobiasw225@gmail.com"
           git config user.name "Tobias Wenzel"
+      - name: Fetch tags
+        run: git fetch --tags
       - name: Bump version and create tag
         run: poetry run cz bump --changelog --yes --no-verify
       - name: Push changes and tags
