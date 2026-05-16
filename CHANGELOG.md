@@ -1,22 +1,8 @@
-## v0.2.0 (2026-05-16)
+## v0.3.0 (2026-05-16)
 
 ### Feat
 
 - add commitizen pipeline (#26)
-
-### Fix
-
-- ci checkout state
-- allow write in release stage (#31)
-- allow write in release stage (#30)
-- remove flake8 config as it is not used anymore (#27)
-- update pytest-asyncio and aiofiles
-
-## v0.1.0 (2026-05-16)
-
-### Feat
-
-- add commitizen pipeline
 - update python to python3.14 (#23)
 - update python version (#22)
 - remove class-clutter (#12)
@@ -24,5 +10,12 @@
 
 ### Fix
 
+- fetch tags in release
+- push tags in release
+- ci checkout state (#32)
+- allow write in release stage (#31)
+- allow write in release stage (#30)
+- remove flake8 config as it is not used anymore (#27)
+- update pytest-asyncio and aiofiles
 - handle empty and edge case inputs in byte-level AES modes
 - update virtualenv dep (#15)
