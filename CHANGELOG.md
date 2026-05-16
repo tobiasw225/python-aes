@@ -1,4 +1,4 @@
-## Unreleased
+## v0.3.0 (2026-05-16)
 
 ### Feat
 
@@ -10,6 +10,7 @@
 
 ### Fix
 
+- fetch tags in release
 - push tags in release
 - ci checkout state (#32)
 - allow write in release stage (#31)
