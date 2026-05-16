@@ -43,7 +43,7 @@ def process_block(block: str) -> list[int]:
 
 
 class StringCounterMode(CounterMode):
-    def encrypt(self, text: str) -> Generator[bytes, None, None]:
+    def encrypt(self, text: str) -> Generator[bytes]:
         blocks = blocks_of_string(text, block_size=self.block_size)
         for i, block in enumerate(blocks):
             enc_nonce = self.encrypt_block(self.nonce(i))
@@ -53,7 +53,7 @@ class StringCounterMode(CounterMode):
             ]
             yield block_to_byte(enc_block)
 
-    def decrypt(self, text_blocks: Sequence[bytes]) -> Generator[str, None, None]:
+    def decrypt(self, text_blocks: Sequence[bytes]) -> Generator[str]:
         for i, block in enumerate(text_blocks):
             dec_nonce = self.encrypt_block(self.nonce(i))
             dec_nonce_bytes: list[int] = [ord(c) for c in hex_string(dec_nonce)]
